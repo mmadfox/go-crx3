@@ -42,7 +42,7 @@ func newPackCmd() *cobra.Command {
 	}
 
 	cmd.Flags().StringVarP(&opts.PrivateKey, "pem", "p", "", "extension key filename (*.pem)")
-	cmd.Flags().StringVarP(&opts.Outfile, "outfile", "o", "", "extension filename (*.crx)")
+	cmd.Flags().StringVarP(&opts.Outfile, "outfile", "o", "", "extension filepath (*.crx)")
 
 	return cmd
 }

@@ -62,8 +62,8 @@ func newDownloadCmd() *cobra.Command {
 		},
 	}
 
-	cmd.Flags().StringVarP(&opts.Outfile, "outfile", "o", "", "extension filepath")
-	cmd.Flags().BoolVarP(&opts.Unpack, "unpack", "u", true, "unpacks extension")
+	cmd.Flags().StringVarP(&opts.Outfile, "outfile", "o", "", "save to the file")
+	cmd.Flags().BoolVarP(&opts.Unpack, "unpack", "u", true, "unpack the extension")
 
 	return cmd
 }

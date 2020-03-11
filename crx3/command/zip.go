@@ -42,7 +42,7 @@ func newZipCmd() *cobra.Command {
 		},
 	}
 
-	cmd.Flags().StringVarP(&opts.Outfile, "outfile", "o", "", "output archive zip")
+	cmd.Flags().StringVarP(&opts.Outfile, "outfile", "o", "", "save to the file")
 
 	return cmd
 }
