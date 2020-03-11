@@ -10,7 +10,7 @@ import (
 func newUnpackCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "unpack [infile]",
-		Short: "unpacks CRX3 extension to directory.",
+		Short: "Unpacks CRX3 extension to directory.",
 		Args: func(cmd *cobra.Command, args []string) error {
 			if len(args) < 1 {
 				return errors.New("infile is required")

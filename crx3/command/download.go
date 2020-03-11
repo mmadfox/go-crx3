@@ -23,7 +23,7 @@ func newDownloadCmd() *cobra.Command {
 	var opts downloadOpts
 	cmd := &cobra.Command{
 		Use:   "download [extensionID]",
-		Short: "downloads the chrome extension from the web store.",
+		Short: "Downloads the chrome extension from the web store.",
 		Args: func(cmd *cobra.Command, args []string) error {
 			if len(args) < 1 {
 				return errors.New("extensionID is required")

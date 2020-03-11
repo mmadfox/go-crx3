@@ -23,7 +23,7 @@ func newEncodeCmd() *cobra.Command {
 	var opts encodeOpts
 	cmd := &cobra.Command{
 		Use:   "encode [infile]",
-		Short: "encodes file to base64.",
+		Short: "Encodes file to base64.",
 		Args: func(cmd *cobra.Command, args []string) error {
 			if len(args) < 1 {
 				return errors.New("infile is required")
