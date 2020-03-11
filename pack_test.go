@@ -2,6 +2,7 @@ package crx3
 
 import (
 	"os"
+	"path"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -16,7 +17,7 @@ func TestPack(t *testing.T) {
 	// pack unpacked extension
 	have = "./testdata/pack/extension"
 	want = "./testdata/pack/extension.crx"
-	err = Pack(have, pk)
+	err = Pack(have, "", pk)
 	assert.Nil(t, err)
 	assert.True(t, fileExists(want))
 	assert.True(t, isCRC(want))
@@ -26,7 +27,7 @@ func TestPack(t *testing.T) {
 	// pack zip extension
 	have = "./testdata/pack/extension.zip"
 	want = "./testdata/pack/extension.crx"
-	err = Pack(have, pk)
+	err = Pack(have, "", pk)
 	assert.Nil(t, err)
 	assert.True(t, fileExists(want))
 	assert.True(t, isCRC(want))
@@ -36,8 +37,8 @@ func TestPack(t *testing.T) {
 	// pack without private key
 	have = "./testdata/pack/extension.zip"
 	want = "./testdata/pack/extension.crx"
-	wantPem := "./testdata/pack/extension.pem"
-	err = Pack(have, nil)
+	wantPem := "./testdata/pack/extension.crx.pem"
+	err = Pack(have, "", nil)
 	assert.Nil(t, err)
 	assert.True(t, fileExists(want))
 	assert.True(t, isCRC(want))
@@ -48,7 +49,18 @@ func TestPack(t *testing.T) {
 
 	// pack unsupported type
 	have = "./testdata/pack/somefile.fg"
-	err = Pack(have, nil)
+	err = Pack(have, "", nil)
 	assert.Error(t, err)
 	assert.Equal(t, ErrUnsupportedFileFormat, err)
+
+	// pack custom dst filepath
+	dst := path.Join(os.TempDir(), "ext.crx")
+	have = "./testdata/pack/extension.zip"
+	err = Pack(have, dst, nil)
+	assert.Nil(t, err)
+	assert.True(t, fileExists(dst+".pem"))
+	err = os.Remove(dst)
+	assert.Nil(t, err)
+	err = os.Remove(dst + ".pem")
+	assert.Nil(t, err)
 }

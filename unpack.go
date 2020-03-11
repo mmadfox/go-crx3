@@ -9,7 +9,7 @@ import (
 	"github.com/golang/protobuf/proto"
 )
 
-// Unpack unpack extension.
+// Unpack unpacks CRX3 extension to directory.
 func Unpack(filename string) error {
 	if !isCRC(filename) {
 		return ErrUnsupportedFileFormat

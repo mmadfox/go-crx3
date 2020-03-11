@@ -9,8 +9,10 @@ import (
 	"crypto/x509"
 	"encoding/binary"
 	"errors"
+	"fmt"
 	"io"
 	"os"
+	"path"
 	"strings"
 
 	proto "github.com/golang/protobuf/proto"
@@ -25,43 +27,67 @@ const (
 var ErrUnsupportedFileFormat = errors.New("crx3: unsupported file format")
 
 // Pack packs zip file or an unpacked directory into a crx file.
-func Pack(filename string, pk *rsa.PrivateKey) (err error) {
+func Pack(src string, dst string, pk *rsa.PrivateKey) (err error) {
 	var (
-		publicKey  []byte
-		signedData []byte
-		signature  []byte
-		header     []byte
+		publicKey      []byte
+		signedData     []byte
+		signature      []byte
+		header         []byte
+		hasDst         = len(dst) > 0
+		isDefaultPk    bool
+		isNotCrxSuffix = path.Ext(dst) != crxExt
 	)
 
-	zipData, err := readZipFile(filename)
+	if hasDst && isNotCrxSuffix {
+		return fmt.Errorf("chrome extension [%s] must end with a suffix .crx", dst)
+	}
+
+	zipData, err := readZipFile(src)
 	if err != nil {
 		return err
 	}
 
+	// make default private key
 	if pk == nil {
-		pk, err = makeDefaultPrivateKey(filename)
+		pk, err = NewPrivateKey()
 		if err != nil {
 			return err
 		}
+		isDefaultPk = true
 	}
 
 	if publicKey, err = makePublicKey(pk); err != nil {
 		return err
 	}
+
 	if signedData, err = makeSignedData(publicKey); err != nil {
 		return err
 	}
+
 	if signature, err = makeSign(zipData, signedData, pk); err != nil {
 		return err
 	}
+
 	if header, err = makeHeader(publicKey, signature, signedData); err != nil {
 		return err
 	}
+
 	if _, err := zipData.Seek(0, 0); err != nil {
 		return err
 	}
-	if err := writeToCRX(filename, zipData, header); err != nil {
+
+	if !hasDst {
+		crxFilename := strings.TrimRight(src, zipExt)
+		crxFilename = crxFilename + crxExt
+		dst = crxFilename
+	}
+	if err := writeToCRX(dst, zipData, header); err != nil {
 		return err
+	}
+	if isDefaultPk {
+		if err := saveDefaultPrivateKey(dst, pk); err != nil {
+			return err
+		}
 	}
 	return nil
 }
@@ -91,9 +117,7 @@ func readZipFile(filename string) (data io.ReadSeeker, err error) {
 }
 
 func writeToCRX(filename string, zipFile io.ReadSeeker, header []byte) error {
-	crxFilename := strings.TrimRight(filename, zipExt)
-	crxFilename = crxFilename + crxExt
-	crx, err := os.Create(crxFilename)
+	crx, err := os.Create(filename)
 	if err != nil {
 		return err
 	}
@@ -158,12 +182,8 @@ func makeHeader(pubKey, signature, signedData []byte) ([]byte, error) {
 	return proto.Marshal(header)
 }
 
-func makeDefaultPrivateKey(filename string) (*rsa.PrivateKey, error) {
-	pk, err := NewPrivateKey()
-	if err != nil {
-		return nil, err
-	}
+func saveDefaultPrivateKey(filename string, pk *rsa.PrivateKey) error {
 	pemFilename := strings.TrimRight(filename, zipExt)
 	pemFilename = pemFilename + pemExt
-	return pk, SavePrivateKey(pemFilename, pk)
+	return SavePrivateKey(pemFilename, pk)
 }

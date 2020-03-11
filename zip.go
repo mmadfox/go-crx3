@@ -2,13 +2,19 @@ package crx3
 
 import (
 	"archive/zip"
+	"errors"
 	"io"
 	"os"
 	"path/filepath"
 )
 
+var ErrPathNotFound = errors.New("crx3: path not found")
+
 // Zip creates a *.zip archive and adds all the files to it.
 func Zip(w io.Writer, unpacked string) error {
+	if !isDir(unpacked) {
+		return ErrPathNotFound
+	}
 	wz := zip.NewWriter(w)
 	defer wz.Close()
 	return filepath.Walk(unpacked, func(path string, info os.FileInfo, err error) error {
