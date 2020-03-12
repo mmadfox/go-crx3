@@ -9,7 +9,7 @@ import (
 	"os"
 )
 
-var ErrUnknownFileExtension = errors.New("crx3: unknown file extension: expected *.crx")
+var ErrUnknownFileExtension = errors.New("crx3: unknown file extension")
 
 // ToBase64 encodes file to base64.
 func ToBase64(filename string) (b []byte, err error) {

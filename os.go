@@ -63,8 +63,16 @@ func isZip(filename string) bool {
 
 func fileExists(filename string) bool {
 	info, err := os.Stat(filename)
-	if err != nil || os.IsNotExist(err) {
+	if os.IsNotExist(err) || err != nil {
 		return false
 	}
 	return !info.IsDir()
+}
+
+func dirExists(filename string) bool {
+	info, err := os.Stat(filename)
+	if os.IsNotExist(err) || err != nil {
+		return false
+	}
+	return info.IsDir()
 }

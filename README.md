@@ -1,8 +1,9 @@
 # go-crx3 [![Coverage Status](https://coveralls.io/repos/github/mediabuyerbot/go-crx3/badge.svg?branch=master)](https://coveralls.io/github/mediabuyerbot/go-crx3?branch=master)
-Provides tools for working with the CRX3 format extension
+Provides a set of tools packing, unpacking, zip, unzip, download, etc.
 
 ## Contents
 + [Installation](#installation)
++ [Commands](#commands)
 + [Examples](#examples)
   - [Pack](#pack)
   - [Unpack](#unpack)
@@ -11,7 +12,8 @@ Provides tools for working with the CRX3 format extension
   - [Zip](#zip)
   - [Unzip](#unzip)
   - [Keygen](#keygen)
-
+  - [IsDir, IsZip, IsCRX3](#isdir-iszip-iscrx3)
+  - [Private key](#newprivatekey-loadprivatekey-saveprivatekey)
 + [License](#license)
 
 
@@ -19,6 +21,12 @@ Provides tools for working with the CRX3 format extension
 ```ssh
 go get -u github.com/mediabuyerbot/go-crx3/crx3
 ```
+
+### Commands
+```shell script
+make proto 
+make covertest
+``` 
 
 ### Examples
 #### Pack 
@@ -124,6 +132,29 @@ if err := crx3.Extension("/path/to/ext.zip").Unzip(); err != nil {
 ```shell script
 $ crx3 unzip /path/to/ext.zip [-o /custom/path] 
 ``` 
+
+#### IsDir, IsZip, IsCRX3
+```go
+import crx3 "github.com/mediabuyerbot/go-crx3"
+
+crx3.Extension("/path/to/ext.zip").IsZip()
+crx3.Extension("/path/to/ext").IsDir()
+crx3.Extension("/path/to/ext.crx").IsCRX3()
+```
+
+#### NewPrivateKey, LoadPrivateKey, SavePrivateKey 
+```go
+import crx3 "github.com/mediabuyerbot/go-crx3"
+
+pk, err := crx3.NewPrivateKey()
+if err != nil {
+    panic(err)
+}
+if err := crx3.SavePrivateKey("/path/to/key.pem", pk); err != nil {
+    panic(err)
+}
+pk, err = crx3.LoadPrivateKey("/path/to/key.pem")
+```
 
 #### Keygen
 ```shell script
