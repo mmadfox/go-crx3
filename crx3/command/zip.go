@@ -20,7 +20,7 @@ func newZipCmd() *cobra.Command {
 	var opts zipOpts
 	cmd := &cobra.Command{
 		Use:   "zip [infile]",
-		Short: "Creates a *.zip archive and adds all the files to it.",
+		Short: "Creates a *.zip archive and adds all the files to it",
 		Args: func(cmd *cobra.Command, args []string) error {
 			if len(args) < 1 {
 				return errors.New("infile is required")

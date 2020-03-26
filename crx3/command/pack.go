@@ -21,7 +21,7 @@ func newPackCmd() *cobra.Command {
 	var opts packOpts
 	cmd := &cobra.Command{
 		Use:   "pack [infile]",
-		Short: "Packs zip file or an unpacked directory into a CRX3 file.",
+		Short: "Packs zip file or an unpacked directory into a CRX3 file",
 		Args: func(cmd *cobra.Command, args []string) error {
 			if len(args) < 1 {
 				return errors.New("infile is required")

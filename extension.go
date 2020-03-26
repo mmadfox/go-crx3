@@ -13,6 +13,11 @@ func (e Extension) String() string {
 	return string(e)
 }
 
+// ID returns an extension id.
+func (e Extension) ID() (string, error) {
+	return ID(e.String())
+}
+
 func (e Extension) isEmpty() bool {
 	return len(e.String()) == 0
 }

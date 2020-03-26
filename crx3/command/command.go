@@ -7,7 +7,7 @@ import (
 func New() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "crx3",
-		Short: "Provides tools for working with the crx3 extension.",
+		Short: "Chrome extensions tools",
 	}
 
 	cmd.AddCommand(newPackCmd())
@@ -17,6 +17,7 @@ func New() *cobra.Command {
 	cmd.AddCommand(newEncodeCmd())
 	cmd.AddCommand(newKeygenCmd())
 	cmd.AddCommand(newDownloadCmd())
+	cmd.AddCommand(newIDCmd())
 
 	return cmd
 }

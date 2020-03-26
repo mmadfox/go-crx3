@@ -1,5 +1,5 @@
 # go-crx3 [![Coverage Status](https://coveralls.io/repos/github/mediabuyerbot/go-crx3/badge.svg?branch=master)](https://coveralls.io/github/mediabuyerbot/go-crx3?branch=master)
-Provides a set of tools packing, unpacking, zip, unzip, download, etc.
+Provides a set of tools packing, unpacking, zip, unzip, download, id, etc.
 
 ## Contents
 + [Installation](#installation)
@@ -12,6 +12,7 @@ Provides a set of tools packing, unpacking, zip, unzip, download, etc.
   - [Zip](#zip)
   - [Unzip](#unzip)
   - [Keygen](#keygen)
+  - [Generate ID](#gen-id)
   - [IsDir, IsZip, IsCRX3](#isdir-iszip-iscrx3)
   - [Private key](#newprivatekey-loadprivatekey-saveprivatekey)
 + [License](#license)
@@ -133,6 +134,19 @@ if err := crx3.Extension("/path/to/ext.zip").Unzip(); err != nil {
 $ crx3 unzip /path/to/ext.zip [-o /custom/path] 
 ``` 
 
+#### Gen ID
+```go
+import crx3 "github.com/mediabuyerbot/go-crx3"
+
+id, err := crx3.Extension("/path/to/ext.crx").ID()
+if err != nil {
+    panic(err)
+}
+```
+```shell script
+$ crx3 id /path/to/ext.crx 
+```
+
 #### IsDir, IsZip, IsCRX3
 ```go
 import crx3 "github.com/mediabuyerbot/go-crx3"
@@ -160,8 +174,6 @@ pk, err = crx3.LoadPrivateKey("/path/to/key.pem")
 ```shell script
 $ crx3 keygen /path/to/key.pem 
 ``` 
-
-
 
 ## License
 go-crx3 is released under the Apache 2.0 license. See [LICENSE.txt](https://github.com/mediabuyerbot/go-crx3/blob/master/LICENSE)

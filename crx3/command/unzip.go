@@ -21,7 +21,7 @@ func newUnzipCmd() *cobra.Command {
 	var opts unzipOpts
 	cmd := &cobra.Command{
 		Use:   "unzip [infile]",
-		Short: "Extracts all files from the archive.",
+		Short: "Extracts all files from the archive",
 		Args: func(cmd *cobra.Command, args []string) error {
 			if len(args) < 1 {
 				return errors.New("infile is required")
