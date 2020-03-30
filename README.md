@@ -1,4 +1,4 @@
-# go-crx3 [![Coverage Status](https://coveralls.io/repos/github/mediabuyerbot/go-crx3/badge.svg?branch=master?v=1)](https://coveralls.io/github/mediabuyerbot/go-crx3?branch=master)
+# go-crx3 [![Coverage Status](https://coveralls.io/repos/github/mediabuyerbot/go-crx3/badge.svg?branch=master)](https://coveralls.io/github/mediabuyerbot/go-crx3?branch=master)
 Provides a sets of tools packing, unpacking, zip, unzip, download, gen id, etc...
 
 ## Table of contents
