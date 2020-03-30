@@ -20,7 +20,7 @@ func newZipCmd() *cobra.Command {
 	var opts zipOpts
 	cmd := &cobra.Command{
 		Use:   "zip [filepath]",
-		Short: "Create archive and adds all the files to it",
+		Short: "Add unpacked extension to archive",
 		Args: func(cmd *cobra.Command, args []string) error {
 			if len(args) < 1 {
 				return errors.New("filepath is required")

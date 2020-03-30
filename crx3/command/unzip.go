@@ -21,7 +21,7 @@ func newUnzipCmd() *cobra.Command {
 	var opts unzipOpts
 	cmd := &cobra.Command{
 		Use:   "unzip [extension.zip]",
-		Short: "Extract all files into directory",
+		Short: "Extract all files from the archive",
 		Args: func(cmd *cobra.Command, args []string) error {
 			if len(args) < 1 {
 				return errors.New("extension is required")

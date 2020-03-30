@@ -128,7 +128,7 @@ $ crx3 zip /path/to/unpacked [-o /custom/path]
 ```
 
 #### Unzip
-#### Unzip an extension to the current directory
+##### Unzip an extension to the current directory
 ```go
 import crx3 "github.com/mediabuyerbot/go-crx3"
 

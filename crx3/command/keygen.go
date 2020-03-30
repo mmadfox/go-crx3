@@ -11,7 +11,7 @@ import (
 func newKeygenCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "keygen [file]",
-		Short: "Creates a new private key file",
+		Short: "Create a new private key",
 		Args: func(cmd *cobra.Command, args []string) error {
 			if len(args) < 1 {
 				return errors.New("infile is required")

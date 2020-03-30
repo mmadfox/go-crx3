@@ -26,7 +26,7 @@ func newBase64Cmd() *cobra.Command {
 		Short: "Encode an extension file to a base64 string",
 		Args: func(cmd *cobra.Command, args []string) error {
 			if len(args) < 1 {
-				return errors.New("infile is required")
+				return errors.New("extension is required")
 			}
 			return nil
 		},
