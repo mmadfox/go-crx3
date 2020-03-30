@@ -2,6 +2,7 @@ package crx3
 
 import (
 	"encoding/binary"
+	"fmt"
 	"net/http"
 	"os"
 )
@@ -21,6 +22,10 @@ func isDir(filename string) bool {
 }
 
 func isCRC(filename string) bool {
+	return isCRX(filename)
+}
+
+func isCRX(filename string) bool {
 	size := 12
 	file, err := os.Open(filename)
 	if err != nil {
@@ -41,6 +46,24 @@ func isCRC(filename string) bool {
 		return false
 	}
 	return true
+}
+
+func openCrxFile(filename string) (*os.File, error) {
+	if err := crxFileExists(filename); err != nil {
+		return nil, err
+	}
+	fd, err := os.Open(filename)
+	if err != nil {
+		return nil, err
+	}
+	return fd, nil
+}
+
+func crxFileExists(filename string) error {
+	if !isCRX(filename) {
+		return fmt.Errorf("%v got %s", ErrUnknownFileExtension, filename)
+	}
+	return nil
 }
 
 func isZip(filename string) bool {

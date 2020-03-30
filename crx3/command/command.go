@@ -14,7 +14,7 @@ func New() *cobra.Command {
 	cmd.AddCommand(newUnpackCmd())
 	cmd.AddCommand(newZipCmd())
 	cmd.AddCommand(newUnzipCmd())
-	cmd.AddCommand(newEncodeCmd())
+	cmd.AddCommand(newBase64Cmd())
 	cmd.AddCommand(newKeygenCmd())
 	cmd.AddCommand(newDownloadCmd())
 	cmd.AddCommand(newIDCmd())

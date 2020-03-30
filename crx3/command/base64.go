@@ -19,11 +19,11 @@ func (o encodeOpts) HasOutfile() bool {
 	return len(o.Outfile) > 0
 }
 
-func newEncodeCmd() *cobra.Command {
+func newBase64Cmd() *cobra.Command {
 	var opts encodeOpts
 	cmd := &cobra.Command{
-		Use:   "encode [infile]",
-		Short: "Encodes file to base64 string",
+		Use:   "base64 [extension.crx]",
+		Short: "Encode an extension file to a base64 string",
 		Args: func(cmd *cobra.Command, args []string) error {
 			if len(args) < 1 {
 				return errors.New("infile is required")
@@ -32,7 +32,7 @@ func newEncodeCmd() *cobra.Command {
 		},
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			extension := crx3.Extension(args[0])
-			b, err := extension.ToBase64()
+			b, err := extension.Base64()
 			if err != nil {
 				return err
 			}
@@ -52,7 +52,7 @@ func newEncodeCmd() *cobra.Command {
 		},
 	}
 
-	cmd.Flags().StringVarP(&opts.Outfile, "outfile", "o", "", "save base64 data to file")
+	cmd.Flags().StringVarP(&opts.Outfile, "outfile", "o", "", "save to file")
 
 	return cmd
 }

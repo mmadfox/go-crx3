@@ -20,8 +20,8 @@ func (o packOpts) HasPem() bool {
 func newPackCmd() *cobra.Command {
 	var opts packOpts
 	cmd := &cobra.Command{
-		Use:   "pack [infile]",
-		Short: "Packs zip file or an unpacked directory into a CRX3 file",
+		Use:   "pack [extension]",
+		Short: "Pack zip file or unzipped directory into a crx extension",
 		Args: func(cmd *cobra.Command, args []string) error {
 			if len(args) < 1 {
 				return errors.New("infile is required")
@@ -41,8 +41,8 @@ func newPackCmd() *cobra.Command {
 		},
 	}
 
-	cmd.Flags().StringVarP(&opts.PrivateKey, "pem", "p", "", "extension key filename (*.pem)")
-	cmd.Flags().StringVarP(&opts.Outfile, "outfile", "o", "", "extension filepath (*.crx)")
+	cmd.Flags().StringVarP(&opts.PrivateKey, "pem", "p", "", "load private key")
+	cmd.Flags().StringVarP(&opts.Outfile, "outfile", "o", "", "save to file")
 
 	return cmd
 }

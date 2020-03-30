@@ -40,9 +40,9 @@ func TestExtension_Unpack(t *testing.T) {
 }
 
 func TestExtension_ToBase64(t *testing.T) {
-	_, err := Extension("").ToBase64()
+	_, err := Extension("").Base64()
 	assert.Equal(t, ErrPathNotFound, err)
-	b, err := Extension("./testdata/unpack/extension.crx").ToBase64()
+	b, err := Extension("./testdata/unpack/extension.crx").Base64()
 	assert.Nil(t, err)
 	assert.NotEmpty(t, b)
 }
@@ -73,6 +73,12 @@ func TestExtension_Zip(t *testing.T) {
 	assert.True(t, Extension("./testdata/unpack/extension.zip").IsZip())
 	assert.Nil(t, os.RemoveAll("./testdata/unpack/extension"))
 	assert.Nil(t, os.RemoveAll("./testdata/unpack/extension.zip"))
+}
+
+func TestExtension_ID(t *testing.T) {
+	id, err := Extension("./testdata/unpack/extension.crx").ID()
+	assert.Nil(t, err)
+	assert.Equal(t, "dgmchnekcpklnjppdmmjlgpmpohmpmgp", id)
 }
 
 func TestExtension_IsCRX3(t *testing.T) {

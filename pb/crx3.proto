@@ -6,7 +6,7 @@ syntax = "proto2";
 
 option optimize_for = LITE_RUNTIME;
 
-package crx3;
+package pb;
 
 // A CRX₃ file is a binary file of the following format:
 // [4 octets]: "Cr24", a magic number.

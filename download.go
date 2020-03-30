@@ -1,7 +1,6 @@
 package crx3
 
 import (
-	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -9,13 +8,21 @@ import (
 	"strings"
 )
 
-const chromeExtURL = "https://clients2.google.com/service/update2/crx?response=redirect&prodversion=80.0&acceptformat=crx3&x=id%3D{id}%26installsource%3Dondemand%26uc"
+var chromeExtURL = "https://clients2.google.com/service/update2/crx?response=redirect&prodversion=80.0&acceptformat=crx3&x=id%3D{id}%26installsource%3Dondemand%26uc"
 
-var (
-	ErrExtensionNotSpecified = errors.New("crx3: extension id not specified")
-)
+// SetWebStoreURL sets the web store url to download extensions.
+func SetWebStoreURL(u string) {
+	if len(u) == 0 {
+		return
+	}
+	if !strings.HasPrefix(u, "http") {
+		u = "https://" + u
+	}
+	chromeExtURL = u
+}
 
-// DownloadFromWebStore downloads the chrome extension from the web store.
+// DownloadFromWebStore downloads a chrome extension from the web store.
+// ExtensionID can be an identifier or an url.
 func DownloadFromWebStore(extensionID string, filename string) error {
 	if len(extensionID) == 0 {
 		return ErrExtensionNotSpecified
@@ -23,18 +30,17 @@ func DownloadFromWebStore(extensionID string, filename string) error {
 	if len(filename) == 0 {
 		return ErrPathNotFound
 	}
+
 	filename = strings.TrimRight(filename, "/")
 	if !strings.HasSuffix(filename, crxExt) {
 		filename = filename + crxExt
 	}
-
 	extensionURL := makeChromeURL(extensionID)
 	file, err := os.Create(filename)
 	if err != nil {
 		return err
 	}
 	defer file.Close()
-
 	resp, err := http.Get(extensionURL)
 	if err != nil {
 		return err

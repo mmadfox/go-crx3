@@ -6,14 +6,16 @@ import (
 	"fmt"
 	"io/ioutil"
 
+	"github.com/mediabuyerbot/go-crx3/pb"
+
 	"github.com/golang/protobuf/proto"
 )
 
 const symbols = "abcdefghijklmnopqrstuvwxyz"
 
-// ID returns an extension id.
+// ID returns the extension id.
 func ID(filename string) (id string, err error) {
-	if !isCRC(filename) {
+	if !isCRX(filename) {
 		return id, ErrUnsupportedFileFormat
 	}
 
@@ -26,8 +28,8 @@ func ID(filename string) (id string, err error) {
 		headerSize = binary.LittleEndian.Uint32(crx[8:12])
 		metaSize   = uint32(12)
 		v          = crx[metaSize : headerSize+metaSize]
-		header     CrxFileHeader
-		signedData SignedData
+		header     pb.CrxFileHeader
+		signedData pb.SignedData
 	)
 
 	if err := proto.Unmarshal(v, &header); err != nil {

@@ -22,11 +22,11 @@ func (o downloadOpts) HasNotOutfile() bool {
 func newDownloadCmd() *cobra.Command {
 	var opts downloadOpts
 	cmd := &cobra.Command{
-		Use:   "download [extensionID]",
-		Short: "Downloads the chrome extension from the web store",
+		Use:   "download [id or url]",
+		Short: "Download the chrome extension from the web store",
 		Args: func(cmd *cobra.Command, args []string) error {
 			if len(args) < 1 {
-				return errors.New("extensionID is required")
+				return errors.New("extension is required")
 			}
 			return nil
 		},
@@ -62,8 +62,8 @@ func newDownloadCmd() *cobra.Command {
 		},
 	}
 
-	cmd.Flags().StringVarP(&opts.Outfile, "outfile", "o", "", "save to the file")
-	cmd.Flags().BoolVarP(&opts.Unpack, "unpack", "u", true, "unpack the extension")
+	cmd.Flags().StringVarP(&opts.Outfile, "outfile", "o", "", "save to file")
+	cmd.Flags().BoolVarP(&opts.Unpack, "unpack", "u", true, "unpack")
 
 	return cmd
 }

@@ -8,12 +8,12 @@ import (
 	"crypto/sha256"
 	"crypto/x509"
 	"encoding/binary"
-	"errors"
-	"fmt"
 	"io"
 	"os"
 	"path"
 	"strings"
+
+	"github.com/mediabuyerbot/go-crx3/pb"
 
 	proto "github.com/golang/protobuf/proto"
 )
@@ -24,9 +24,7 @@ const (
 	pemExt = ".pem"
 )
 
-var ErrUnsupportedFileFormat = errors.New("crx3: unsupported file format")
-
-// Pack packs zip file or an unpacked directory into a crx file.
+// Pack packs a zip file or unzipped directory into a crx extension.
 func Pack(src string, dst string, pk *rsa.PrivateKey) (err error) {
 	var (
 		publicKey      []byte
@@ -39,7 +37,7 @@ func Pack(src string, dst string, pk *rsa.PrivateKey) (err error) {
 	)
 
 	if hasDst && isNotCrxSuffix {
-		return fmt.Errorf("chrome extension [%s] must end with a suffix .crx", dst)
+		return ErrUnknownFileExtension
 	}
 
 	zipData, err := readZipFile(src)
@@ -59,19 +57,15 @@ func Pack(src string, dst string, pk *rsa.PrivateKey) (err error) {
 	if publicKey, err = makePublicKey(pk); err != nil {
 		return err
 	}
-
 	if signedData, err = makeSignedData(publicKey); err != nil {
 		return err
 	}
-
 	if signature, err = makeSign(zipData, signedData, pk); err != nil {
 		return err
 	}
-
 	if header, err = makeHeader(publicKey, signature, signedData); err != nil {
 		return err
 	}
-
 	if _, err := zipData.Seek(0, 0); err != nil {
 		return err
 	}
@@ -110,7 +104,7 @@ func readZipFile(filename string) (data io.ReadSeeker, err error) {
 			return nil, err
 		}
 	default:
-		return nil, ErrUnsupportedFileFormat
+		return nil, ErrUnknownFileExtension
 	}
 
 	return bytes.NewReader(zipData.Bytes()), nil
@@ -150,7 +144,7 @@ func makePublicKey(pk *rsa.PrivateKey) ([]byte, error) {
 }
 
 func makeSignedData(publicKey []byte) ([]byte, error) {
-	signedData := &SignedData{
+	signedData := &pb.SignedData{
 		CrxId: makeCRXID(publicKey),
 	}
 	return proto.Marshal(signedData)
@@ -170,9 +164,9 @@ func makeSign(r io.Reader, signedData []byte, pk *rsa.PrivateKey) ([]byte, error
 }
 
 func makeHeader(pubKey, signature, signedData []byte) ([]byte, error) {
-	header := &CrxFileHeader{
-		Sha256WithRsa: []*AsymmetricKeyProof{
-			&AsymmetricKeyProof{
+	header := &pb.CrxFileHeader{
+		Sha256WithRsa: []*pb.AsymmetricKeyProof{
+			&pb.AsymmetricKeyProof{
 				PublicKey: pubKey,
 				Signature: signature,
 			},

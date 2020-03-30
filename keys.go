@@ -5,20 +5,20 @@ import (
 	"crypto/rsa"
 	"crypto/x509"
 	"encoding/pem"
-	"errors"
 	"io/ioutil"
 	"os"
 )
 
-var (
-	ErrPrivateKeyNotFound = errors.New("crx3: private key not found")
-)
-
+// NewPrivateKey returns a new private key.
 func NewPrivateKey() (*rsa.PrivateKey, error) {
 	return rsa.GenerateKey(rand.Reader, 2048)
 }
 
+// SavePrivateKey saves private key to file.
 func SavePrivateKey(filename string, key *rsa.PrivateKey) error {
+	if key == nil {
+		key, _ = NewPrivateKey()
+	}
 	fd, err := os.Create(filename)
 	if err != nil {
 		return err
@@ -36,6 +36,7 @@ func SavePrivateKey(filename string, key *rsa.PrivateKey) error {
 	return err
 }
 
+// LoadPrivateKey loads the private key from a file into memory.
 func LoadPrivateKey(filename string) (*rsa.PrivateKey, error) {
 	buf, err := ioutil.ReadFile(filename)
 	if err != nil {

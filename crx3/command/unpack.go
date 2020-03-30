@@ -9,11 +9,11 @@ import (
 
 func newUnpackCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "unpack [infile]",
-		Short: "Unpacks CRX3 extension to directory",
+		Use:   "unpack [extension.crx]",
+		Short: "Unpack chrome extension into current directory",
 		Args: func(cmd *cobra.Command, args []string) error {
 			if len(args) < 1 {
-				return errors.New("infile is required")
+				return errors.New("extension is required")
 			}
 			return nil
 		},

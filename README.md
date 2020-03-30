@@ -1,20 +1,20 @@
-# go-crx3 [![Coverage Status](https://coveralls.io/repos/github/mediabuyerbot/go-crx3/badge.svg?branch=master)](https://coveralls.io/github/mediabuyerbot/go-crx3?branch=master)
-Provides a set of tools packing, unpacking, zip, unzip, download, id, etc.
+# go-crx3 [![Coverage Status](https://coveralls.io/repos/github/mediabuyerbot/go-crx3/badge.svg?branch=master?v=1)](https://coveralls.io/github/mediabuyerbot/go-crx3?branch=master)
+Provides a sets of tools packing, unpacking, zip, unzip, download, gen id, etc...
 
-## Contents
+## Table of contents
 + [Installation](#installation)
 + [Commands](#commands)
 + [Examples](#examples)
-  - [Pack](#pack)
-  - [Unpack](#unpack)
-  - [Encode to base64](#encode-to-base64)
-  - [Download](#download)
-  - [Zip](#zip)
-  - [Unzip](#unzip)
+  - [Encode to base64 string](#base64)
+  - [Pack a zip file or unzipped directory into a crx extension](#pack)
+  - [Unpack chrome extension into current directory](#unpack)
+  - [Download a chrome extension from the web store](#download)
+  - [Add unpacked extension to archive](#zip)
+  - [Unzip an extension to the directory](#unzip)
   - [Keygen](#keygen)
-  - [Generate ID](#gen-id)
-  - [IsDir, IsZip, IsCRX3](#isdir-iszip-iscrx3)
-  - [Private key](#newprivatekey-loadprivatekey-saveprivatekey)
+  - [Generate extension id](#gen-id)
+  - [IsDir, IsZip, IsCRX3 helpers](#isdir-iszip-iscrx3)
+  - [Load or save private key](#newprivatekey-loadprivatekey-saveprivatekey)
 + [License](#license)
 
 
@@ -30,7 +30,8 @@ make covertest
 ``` 
 
 ### Examples
-#### Pack 
+#### Pack
+##### Pack a zip file or unzipped directory into a crx extension 
 ```go
 import crx3 "github.com/mediabuyerbot/go-crx3"
 
@@ -69,6 +70,7 @@ $ crx3 pack /path/to/file.zip -p /path/to/key.pem -o /path/to/ext.crx
 ```
 
 #### Unpack
+##### Unpack chrome extension into current directory
 ```go
 import crx3 "github.com/mediabuyerbot/go-crx3"
 
@@ -80,22 +82,24 @@ if err := crx3.Extension("/path/to/ext.crx").Unpack(); err != nil {
 $ crx3 unpack /path/to/ext.crx 
 ```
 
-#### Encode to base64
+#### Base64
+##### Encode an extension file to a base64 string
 ```go
 import crx3 "github.com/mediabuyerbot/go-crx3"
 import "fmt"
 
-b, err := crx3.Extension("/path/to/ext.crx").ToBase64()
+b, err := crx3.Extension("/path/to/ext.crx").Base64()
 if err != nil {
    panic(err)
 }
 fmt.Println(string(b))
 ```
 ```shell script
-$ crx3 encode /path/to/ext.crx [-o /path/to/file] 
+$ crx3 base64 /path/to/ext.crx [-o /path/to/file] 
 ```
 
 #### Download 
+##### Download a chrome extension from the web store
 ```go
 import crx3 "github.com/mediabuyerbot/go-crx3"
 
@@ -110,7 +114,8 @@ $ crx3 download blipmdconlkpinefehnmjammfjpmpbjk [-o /custom/path]
 $ crx3 download https://chrome.google.com/webstore/detail/lighthouse/blipmdconlkpinefehnmjammfjpmpbjk
 ```
 
-#### Zip 
+#### Zip
+##### Zip add an unpacked extension to the archive
 ```go
 import crx3 "github.com/mediabuyerbot/go-crx3"
 
@@ -122,7 +127,8 @@ if err := crx3.Extension("/path/to/unpacked").Zip(); err != nil {
 $ crx3 zip /path/to/unpacked [-o /custom/path] 
 ```
 
-#### Unzip 
+#### Unzip
+#### Unzip an extension to the current directory
 ```go
 import crx3 "github.com/mediabuyerbot/go-crx3"
 
@@ -135,6 +141,7 @@ $ crx3 unzip /path/to/ext.zip [-o /custom/path]
 ``` 
 
 #### Gen ID
+##### Generate extension id (like dgmchnekcpklnjppdmmjlgpmpohmpmgp)
 ```go
 import crx3 "github.com/mediabuyerbot/go-crx3"
 

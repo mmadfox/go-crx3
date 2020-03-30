@@ -87,12 +87,12 @@ func (e Extension) Unzip() error {
 	return Unzip(file, stat.Size(), unpacked)
 }
 
-// ToBase64 encodes file to base64.
-func (e Extension) ToBase64() ([]byte, error) {
+// Base64 encodes an extension file to a base64 string.
+func (e Extension) Base64() ([]byte, error) {
 	if e.isEmpty() {
 		return nil, ErrPathNotFound
 	}
-	return ToBase64(e.String())
+	return Base64(e.String())
 }
 
 // Unpack unpacks CRX3 extension to directory.

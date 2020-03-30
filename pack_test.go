@@ -20,7 +20,7 @@ func TestPack(t *testing.T) {
 	err = Pack(have, "", pk)
 	assert.Nil(t, err)
 	assert.True(t, fileExists(want))
-	assert.True(t, isCRC(want))
+	assert.True(t, isCRX(want))
 	err = os.Remove(want)
 	assert.Nil(t, err)
 
@@ -30,7 +30,7 @@ func TestPack(t *testing.T) {
 	err = Pack(have, "", pk)
 	assert.Nil(t, err)
 	assert.True(t, fileExists(want))
-	assert.True(t, isCRC(want))
+	assert.True(t, isCRX(want))
 	err = os.Remove(want)
 	assert.Nil(t, err)
 
@@ -41,7 +41,7 @@ func TestPack(t *testing.T) {
 	err = Pack(have, "", nil)
 	assert.Nil(t, err)
 	assert.True(t, fileExists(want))
-	assert.True(t, isCRC(want))
+	assert.True(t, isCRX(want))
 	assert.True(t, fileExists(wantPem))
 	err = os.Remove(want)
 	assert.Nil(t, err)
@@ -51,7 +51,7 @@ func TestPack(t *testing.T) {
 	have = "./testdata/pack/somefile.fg"
 	err = Pack(have, "", nil)
 	assert.Error(t, err)
-	assert.Equal(t, ErrUnsupportedFileFormat, err)
+	assert.Equal(t, ErrUnknownFileExtension, err)
 
 	// pack custom dst filepath
 	dst := path.Join(os.TempDir(), "ext.crx")

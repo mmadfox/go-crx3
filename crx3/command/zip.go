@@ -19,11 +19,11 @@ func (o zipOpts) HasOutfile() bool {
 func newZipCmd() *cobra.Command {
 	var opts zipOpts
 	cmd := &cobra.Command{
-		Use:   "zip [infile]",
-		Short: "Creates a *.zip archive and adds all the files to it",
+		Use:   "zip [filepath]",
+		Short: "Create archive and adds all the files to it",
 		Args: func(cmd *cobra.Command, args []string) error {
 			if len(args) < 1 {
-				return errors.New("infile is required")
+				return errors.New("filepath is required")
 			}
 			return nil
 		},
@@ -42,7 +42,7 @@ func newZipCmd() *cobra.Command {
 		},
 	}
 
-	cmd.Flags().StringVarP(&opts.Outfile, "outfile", "o", "", "save to the file")
+	cmd.Flags().StringVarP(&opts.Outfile, "outfile", "o", "", "save to file")
 
 	return cmd
 }
