@@ -3,7 +3,7 @@ package crx3
 import (
 	"bytes"
 	"encoding/binary"
-	"io/ioutil"
+	"os"
 	"strings"
 
 	"github.com/mediabuyerbot/go-crx3/pb"
@@ -11,15 +11,17 @@ import (
 	"github.com/golang/protobuf/proto"
 )
 
-// Unpack unpacks chrome extension into some directory.
+// Unpack unpacks Google Chrome extension.
 func Unpack(filename string) error {
 	if !isCRX(filename) {
 		return ErrUnsupportedFileFormat
 	}
-	crx, err := ioutil.ReadFile(filename)
+
+	crx, err := os.ReadFile(filename)
 	if err != nil {
 		return err
 	}
+
 	var (
 		headerSize = binary.LittleEndian.Uint32(crx[8:12])
 		metaSize   = uint32(12)
@@ -28,10 +30,10 @@ func Unpack(filename string) error {
 		signedData pb.SignedData
 	)
 
-	if err := proto.Unmarshal(v, &header); err != nil {
+	if err = proto.Unmarshal(v, &header); err != nil {
 		return err
 	}
-	if err := proto.Unmarshal(header.SignedHeaderData, &signedData); err != nil {
+	if err = proto.Unmarshal(header.SignedHeaderData, &signedData); err != nil {
 		return err
 	}
 
@@ -43,6 +45,6 @@ func Unpack(filename string) error {
 	reader := bytes.NewReader(data)
 	size := int64(len(data))
 
-	unpacked := strings.TrimRight(filename, crxExt)
+	unpacked := strings.TrimSuffix(filename, crxExt)
 	return Unzip(reader, size, unpacked)
 }

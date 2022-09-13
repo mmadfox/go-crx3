@@ -17,13 +17,13 @@ func TestUnpack(t *testing.T) {
 	}
 	err := Unpack("./testdata/unpack/extension.crx")
 	assert.Nil(t, err)
-	err = filepath.Walk("./testdata/unpack/extension", func(path string, info os.FileInfo, err error) error {
-		relpath, err := filepath.Rel("./testdata/unpack/extension", path)
-		assert.Nil(t, err)
-		stats[relpath]++
+	werr := filepath.Walk("./testdata/unpack/extension", func(path string, info os.FileInfo, err error) error {
+		relPath, er := filepath.Rel("./testdata/unpack/extension", path)
+		assert.Nil(t, er)
+		stats[relPath]++
 		return nil
 	})
-	assert.Nil(t, err)
+	assert.Nil(t, werr)
 	for _, v := range stats {
 		assert.Equal(t, 1, v)
 	}

@@ -3,7 +3,6 @@ package crx3
 import (
 	"bytes"
 	"encoding/binary"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"testing"
@@ -24,7 +23,7 @@ func TestIDNegative(t *testing.T) {
 	buf.WriteString("Cr24")
 	// version 4
 	_ = binary.Write(buf, binary.LittleEndian, uint32(4))
-	err := ioutil.WriteFile(filename, buf.Bytes(), os.ModePerm)
+	err := os.WriteFile(filename, buf.Bytes(), os.ModePerm)
 	assert.Nil(t, err)
 	id, err := ID(filename)
 	assert.Error(t, err)
@@ -43,7 +42,7 @@ func TestIDNegative_UnmarshalHeader(t *testing.T) {
 		tmp[i] = byte(1)
 	}
 	buf.Write(tmp)
-	err := ioutil.WriteFile(filename, buf.Bytes(), os.ModePerm)
+	err := os.WriteFile(filename, buf.Bytes(), os.ModePerm)
 	assert.Nil(t, err)
 	id, err := ID(filename)
 	assert.Error(t, err)
@@ -61,7 +60,7 @@ func TestIDNegative_UnmarshalSignedData(t *testing.T) {
 	assert.Nil(t, err)
 	_ = binary.Write(buf, binary.LittleEndian, uint32(len(header)))
 	buf.Write(header)
-	err = ioutil.WriteFile(filename, buf.Bytes(), os.ModePerm)
+	err = os.WriteFile(filename, buf.Bytes(), os.ModePerm)
 	assert.Nil(t, err)
 	id, err := ID(filename)
 	assert.Error(t, err)

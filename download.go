@@ -21,7 +21,7 @@ func SetWebStoreURL(u string) {
 	chromeExtURL = u
 }
 
-// DownloadFromWebStore downloads a chrome extension from the web store.
+// DownloadFromWebStore downloads a Chrome extension from the web store.
 // ExtensionID can be an identifier or an url.
 func DownloadFromWebStore(extensionID string, filename string) error {
 	if len(extensionID) == 0 {

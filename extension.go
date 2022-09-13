@@ -69,7 +69,7 @@ func (e Extension) Unzip() error {
 		return err
 	}
 
-	unpacked := strings.TrimRight(e.String(), zipExt)
+	unpacked := strings.TrimSuffix(e.String(), zipExt)
 	if dirExists(unpacked) {
 		index := 1
 		for {

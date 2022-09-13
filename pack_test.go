@@ -46,6 +46,7 @@ func TestPack(t *testing.T) {
 	err = os.Remove(want)
 	assert.Nil(t, err)
 	err = os.Remove(wantPem)
+	assert.Nil(t, err)
 
 	// pack unsupported type
 	have = "./testdata/pack/somefile.fg"

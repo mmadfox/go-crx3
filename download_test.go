@@ -3,7 +3,6 @@ package crx3
 import (
 	"bytes"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -39,7 +38,7 @@ func TestDownloadFromWebStore(t *testing.T) {
 
 		w.WriteHeader(http.StatusOK)
 
-		b, err := ioutil.ReadFile("./testdata/unpack/extension.crx")
+		b, err := os.ReadFile("./testdata/unpack/extension.crx")
 		assert.Nil(t, err)
 		_, err = io.Copy(w, bytes.NewReader(b))
 		assert.Nil(t, err)
@@ -63,7 +62,7 @@ func TestDownloadFromWebStoreNegative(t *testing.T) {
 
 		w.WriteHeader(http.StatusBadRequest)
 
-		b, err := ioutil.ReadFile("./testdata/unpack/extension.crx")
+		b, err := os.ReadFile("./testdata/unpack/extension.crx")
 		assert.Nil(t, err)
 		_, err = io.Copy(w, bytes.NewReader(b))
 		assert.Nil(t, err)

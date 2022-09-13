@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"encoding/binary"
 	"fmt"
-	"io/ioutil"
+	"os"
 
 	"github.com/mediabuyerbot/go-crx3/pb"
 
@@ -19,7 +19,7 @@ func ID(filename string) (id string, err error) {
 		return id, ErrUnsupportedFileFormat
 	}
 
-	crx, err := ioutil.ReadFile(filename)
+	crx, err := os.ReadFile(filename)
 	if err != nil {
 		return id, err
 	}

@@ -5,7 +5,6 @@ import (
 	"crypto/rsa"
 	"crypto/x509"
 	"encoding/pem"
-	"io/ioutil"
 	"os"
 )
 
@@ -38,7 +37,7 @@ func SavePrivateKey(filename string, key *rsa.PrivateKey) error {
 
 // LoadPrivateKey loads the private key from a file into memory.
 func LoadPrivateKey(filename string) (*rsa.PrivateKey, error) {
-	buf, err := ioutil.ReadFile(filename)
+	buf, err := os.ReadFile(filename)
 	if err != nil {
 		return nil, err
 	}
