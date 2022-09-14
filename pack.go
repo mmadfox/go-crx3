@@ -15,7 +15,7 @@ import (
 
 	"github.com/mediabuyerbot/go-crx3/pb"
 
-	proto "github.com/golang/protobuf/proto"
+	"google.golang.org/protobuf/proto"
 )
 
 const (
@@ -71,7 +71,7 @@ func Pack(src string, dst string, pk *rsa.PrivateKey) (err error) {
 	}
 
 	if !hasDst {
-		crxFilename := strings.TrimRight(src, zipExt)
+		crxFilename := strings.TrimSuffix(src, zipExt)
 		crxFilename = crxFilename + crxExt
 		dst = crxFilename
 	}
@@ -166,7 +166,7 @@ func makeSign(r io.Reader, signedData []byte, pk *rsa.PrivateKey) ([]byte, error
 func makeHeader(pubKey, signature, signedData []byte) ([]byte, error) {
 	header := &pb.CrxFileHeader{
 		Sha256WithRsa: []*pb.AsymmetricKeyProof{
-			&pb.AsymmetricKeyProof{
+			{
 				PublicKey: pubKey,
 				Signature: signature,
 			},
@@ -177,7 +177,7 @@ func makeHeader(pubKey, signature, signedData []byte) ([]byte, error) {
 }
 
 func saveDefaultPrivateKey(filename string, pk *rsa.PrivateKey) error {
-	pemFilename := strings.TrimRight(filename, zipExt)
+	pemFilename := strings.TrimSuffix(filename, zipExt)
 	pemFilename = pemFilename + pemExt
 	return SavePrivateKey(pemFilename, pk)
 }

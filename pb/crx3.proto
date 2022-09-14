@@ -4,10 +4,10 @@
 
 syntax = "proto2";
 
-option optimize_for = LITE_RUNTIME;
-
 package pb;
 
+option optimize_for = LITE_RUNTIME;
+option go_package = "./pb/pb";
 // A CRX₃ file is a binary file of the following format:
 // [4 octets]: "Cr24", a magic number.
 // [4 octets]: The version of the *.crx file format used (currently 3).

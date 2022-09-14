@@ -1,4 +1,4 @@
-package command
+package commands
 
 import (
 	"errors"
@@ -40,7 +40,7 @@ func newUnzipCmd() *cobra.Command {
 				return err
 			}
 			if opts.HasNotOutfile() {
-				opts.Outfile = strings.TrimRight(infile, ".zip")
+				opts.Outfile = strings.TrimSuffix(infile, ".zip")
 			}
 			return crx3.Unzip(zipFile, stat.Size(), opts.Outfile)
 		},

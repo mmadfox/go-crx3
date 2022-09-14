@@ -8,7 +8,7 @@ import (
 
 	"github.com/mediabuyerbot/go-crx3/pb"
 
-	"github.com/golang/protobuf/proto"
+	"google.golang.org/protobuf/proto"
 )
 
 const symbols = "abcdefghijklmnopqrstuvwxyz"
