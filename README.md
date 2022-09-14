@@ -6,7 +6,7 @@ Provides a sets of tools packing, unpacking, zip, unzip, download, gen id, etc..
 
 ## Table of contents
 + [Installation](#installation)
-+ [Commands](#commands)
++ [Dev commands](#commands)
 + [Examples](#examples)
   - [Encode to base64 string](#base64)
   - [Pack a zip file or unzipped directory into a crx extension](#pack)
@@ -26,10 +26,10 @@ Provides a sets of tools packing, unpacking, zip, unzip, download, gen id, etc..
 go get -u github.com/mediabuyerbot/go-crx3/crx3
 ```
 
-### Commands
+### Dev commands
 ```shell script
-make proto 
-make covertest
+$ make proto 
+$ make test/cover
 ``` 
 
 ### Examples
