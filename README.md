@@ -1,6 +1,8 @@
 # go-crx3 
 [![Coverage Status](https://coveralls.io/repos/github/mediabuyerbot/go-crx3/badge.svg?branch=master&v=3)](https://coveralls.io/github/mediabuyerbot/go-crx3?branch=master)
 [![Documentation](https://godoc.org/github.com/mediabuyerbot/go-crx3?status.svg)](https://pkg.go.dev/github.com/mediabuyerbot/go-crx3)
+[![Go Report Card](https://goreportcard.com/badge/github.com/mediabuyerbot/go-crx3)](https://goreportcard.com/report/github.com/mediabuyerbot/go-crx3)
+![Actions](https://github.com/mmadfox/go-crx3/actions/workflows/cover.yml/badge.svg)
 
 Provides a sets of tools packing, unpacking, zip, unzip, download, gen id, etc...
 
