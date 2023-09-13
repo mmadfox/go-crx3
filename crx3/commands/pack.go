@@ -24,7 +24,7 @@ func newPackCmd() *cobra.Command {
 		Short: "Pack zip file or unzipped directory into a crx extension",
 		Args: func(cmd *cobra.Command, args []string) error {
 			if len(args) < 1 {
-				return errors.New("infile is required")
+				return errors.New("file is required")
 			}
 			return nil
 		},

@@ -13,7 +13,9 @@ import (
 
 const symbols = "abcdefghijklmnopqrstuvwxyz"
 
-// ID returns the extension id.
+// ID returns the extension ID extracted from a CRX (Chrome Extension) file specified by 'filename'.
+// It checks if the file is in the CRX format, reads its header and signed data,
+// and then converts the CRX ID into a string representation
 func ID(filename string) (id string, err error) {
 	if !isCRX(filename) {
 		return id, ErrUnsupportedFileFormat

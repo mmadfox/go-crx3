@@ -25,6 +25,9 @@ const (
 )
 
 // Pack packs a zip file or unzipped directory into a crx extension.
+// It takes the source 'src' (zip file or directory), target 'dst' CRX file path,
+// and a private key 'pk' (optional). If 'pk' is nil, it generates a new private key.
+// It creates a CRX extension from the source and writes it to the destination.
 func Pack(src string, dst string, pk *rsa.PrivateKey) (err error) {
 	var (
 		publicKey      []byte
@@ -35,6 +38,10 @@ func Pack(src string, dst string, pk *rsa.PrivateKey) (err error) {
 		isDefaultPk    bool
 		isNotCrxSuffix = path.Ext(dst) != crxExt
 	)
+
+	if len(src) == 0 || len(dst) == 0 {
+		return ErrPathNotFound
+	}
 
 	if hasDst && isNotCrxSuffix {
 		return ErrUnknownFileExtension

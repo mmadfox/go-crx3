@@ -9,7 +9,34 @@ import (
 	"strings"
 )
 
-// Unzip extracts all files from the archive.
+// UnzipTo extracts the contents of a ZIP archive specified by 'filename' to the 'basepath' directory.
+// It opens the ZIP file, creates the necessary directory structure, and extracts all files.
+func UnzipTo(basepath string, filename string) error {
+	if !isDir(basepath) {
+		return fmt.Errorf("%w: does not exists %s",
+			ErrPathNotFound, basepath)
+	}
+
+	file, err := os.Open(filename)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	stat, err := file.Stat()
+	if err != nil {
+		return err
+	}
+
+	dirname := filepath.Join(basepath,
+		strings.TrimSuffix(filepath.Base(filename), zipExt))
+
+	return Unzip(file, stat.Size(), dirname)
+}
+
+// Unzip extracts all files and directories from the provided ZIP archive.
+// It takes an io.ReaderAt 'r', the size 'size' of the ZIP archive, and the target directory 'unpacked' for extraction.
+// It iterates through the archive, creating directories and writing files as necessary.
 func Unzip(r io.ReaderAt, size int64, unpacked string) error {
 	reader, err := zip.NewReader(r, size)
 	if err != nil {

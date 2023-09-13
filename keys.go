@@ -8,12 +8,13 @@ import (
 	"os"
 )
 
-// NewPrivateKey returns a new private key.
+// NewPrivateKey returns a new RSA private key with a bit size of 2048.
 func NewPrivateKey() (*rsa.PrivateKey, error) {
 	return rsa.GenerateKey(rand.Reader, 2048)
 }
 
-// SavePrivateKey saves private key to file.
+// SavePrivateKey saves the provided 'key' private key to the specified 'filename'.
+// If 'key' is nil, it generates a new private key and saves it to the file.
 func SavePrivateKey(filename string, key *rsa.PrivateKey) error {
 	if key == nil {
 		key, _ = NewPrivateKey()
@@ -35,7 +36,8 @@ func SavePrivateKey(filename string, key *rsa.PrivateKey) error {
 	return err
 }
 
-// LoadPrivateKey loads the private key from a file into memory.
+// LoadPrivateKey loads the RSA private key from the specified 'filename' into memory.
+// It returns the loaded private key or an error if the key cannot be loaded.
 func LoadPrivateKey(filename string) (*rsa.PrivateKey, error) {
 	buf, err := os.ReadFile(filename)
 	if err != nil {

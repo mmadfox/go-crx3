@@ -1,4 +1,4 @@
-FROM golang:1.19 AS builder
+FROM golang:1.21 AS builder
 
 ENV PROTOC_VERSION "3.17.3"
 ENV PROTOC_GEN_GO_VERSION "1.5.2"

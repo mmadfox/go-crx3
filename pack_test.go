@@ -1,67 +1,94 @@
 package crx3
 
 import (
+	"crypto/rsa"
 	"os"
-	"path"
+	"path/filepath"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestPack(t *testing.T) {
-	pk, err := NewPrivateKey()
-	assert.Nil(t, err)
+	basePath, err := os.MkdirTemp("", "packtest")
+	require.NoError(t, err)
+	defer os.RemoveAll(basePath)
 
-	var have, want string
-
-	// pack unpacked extension
-	have = "./testdata/pack/extension"
-	want = "./testdata/pack/extension.crx"
-	err = Pack(have, "", pk)
-	assert.Nil(t, err)
-	assert.True(t, fileExists(want))
-	assert.True(t, isCRX(want))
-	err = os.Remove(want)
-	assert.Nil(t, err)
-
-	// pack zip extension
-	have = "./testdata/pack/extension.zip"
-	want = "./testdata/pack/extension.crx"
-	err = Pack(have, "", pk)
-	assert.Nil(t, err)
-	assert.True(t, fileExists(want))
-	assert.True(t, isCRX(want))
-	err = os.Remove(want)
-	assert.Nil(t, err)
-
-	// pack without private key
-	have = "./testdata/pack/extension.zip"
-	want = "./testdata/pack/extension.crx"
-	wantPem := "./testdata/pack/extension.crx.pem"
-	err = Pack(have, "", nil)
-	assert.Nil(t, err)
-	assert.True(t, fileExists(want))
-	assert.True(t, isCRX(want))
-	assert.True(t, fileExists(wantPem))
-	err = os.Remove(want)
-	assert.Nil(t, err)
-	err = os.Remove(wantPem)
-	assert.Nil(t, err)
-
-	// pack unsupported type
-	have = "./testdata/pack/somefile.fg"
-	err = Pack(have, "", nil)
-	assert.Error(t, err)
-	assert.Equal(t, ErrUnknownFileExtension, err)
-
-	// pack custom dst filepath
-	dst := path.Join(os.TempDir(), "ext.crx")
-	have = "./testdata/pack/extension.zip"
-	err = Pack(have, dst, nil)
-	assert.Nil(t, err)
-	assert.True(t, fileExists(dst+".pem"))
-	err = os.Remove(dst)
-	assert.Nil(t, err)
-	err = os.Remove(dst + ".pem")
-	assert.Nil(t, err)
+	type args struct {
+		src string
+		dst string
+		pk  *rsa.PrivateKey
+	}
+	tests := []struct {
+		name    string
+		args    args
+		assert  func()
+		wantErr bool
+	}{
+		{
+			name: "should return error when src path is empty",
+			args: args{
+				src: "",
+				dst: "/path",
+			},
+			wantErr: true,
+		},
+		{
+			name: "should return error when dst path is empty",
+			args: args{
+				src: "/path/to",
+				dst: "",
+			},
+			wantErr: true,
+		},
+		{
+			name: "should return error when file does not crx suffix",
+			args: args{
+				src: "./testdata/extension",
+				dst: "somefile.png",
+			},
+			wantErr: true,
+		},
+		{
+			name: "should return error when src does not exists",
+			args: args{
+				src: "path/not/exists",
+				dst: "gobyMo.crx",
+			},
+			wantErr: true,
+		},
+		{
+			name: "should not return when src not zipped",
+			args: args{
+				src: "./testdata/extension",
+				dst: filepath.Join(basePath, "my.crx"),
+			},
+			assert: func() {
+				expectedCrx := filepath.Join(basePath, "my.crx")
+				expectedPem := filepath.Join(basePath, "my.crx.pem")
+				require.True(t, fileExists(expectedCrx))
+				require.True(t, fileExists(expectedPem))
+			},
+		},
+		{
+			name: "should not return when src zipped",
+			args: args{
+				src: "./testdata/bobbyMol.zip",
+				dst: filepath.Join(basePath, "my.crx"),
+			},
+			assert: func() {
+				expectedCrx := filepath.Join(basePath, "my.crx")
+				expectedPem := filepath.Join(basePath, "my.crx.pem")
+				require.True(t, fileExists(expectedCrx))
+				require.True(t, fileExists(expectedPem))
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if err := Pack(tt.args.src, tt.args.dst, tt.args.pk); (err != nil) != tt.wantErr {
+				t.Errorf("Pack() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
 }

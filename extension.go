@@ -2,13 +2,16 @@ package crx3
 
 import (
 	"crypto/rsa"
+	"fmt"
 	"os"
 	"strconv"
 	"strings"
 )
 
+// Extension represents an extension for google chrome.
 type Extension string
 
+// String returns a string representation.
 func (e Extension) String() string {
 	return string(e)
 }
@@ -18,7 +21,8 @@ func (e Extension) ID() (string, error) {
 	return ID(e.String())
 }
 
-func (e Extension) isEmpty() bool {
+// IsEmpty checks if the extension is empty.
+func (e Extension) IsEmpty() bool {
 	return len(e.String()) == 0
 }
 
@@ -39,8 +43,8 @@ func (e Extension) IsCRX3() bool {
 
 // Zip creates a *.zip archive and adds all the files to it.
 func (e Extension) Zip() error {
-	if e.isEmpty() {
-		return ErrPathNotFound
+	if e.IsEmpty() {
+		return fmt.Errorf("%w: %s", ErrPathNotFound, e)
 	}
 
 	filename := strings.TrimRight(e.String(), "/") + zipExt
@@ -55,8 +59,8 @@ func (e Extension) Zip() error {
 
 // Unzip extracts all files from the archive.
 func (e Extension) Unzip() error {
-	if e.isEmpty() {
-		return ErrPathNotFound
+	if e.IsEmpty() {
+		return fmt.Errorf("%w: %s", ErrPathNotFound, e)
 	}
 
 	file, err := os.Open(e.String())
@@ -64,6 +68,7 @@ func (e Extension) Unzip() error {
 		return err
 	}
 	defer file.Close()
+
 	stat, err := file.Stat()
 	if err != nil {
 		return err
@@ -89,23 +94,23 @@ func (e Extension) Unzip() error {
 
 // Base64 encodes an extension file to a base64 string.
 func (e Extension) Base64() ([]byte, error) {
-	if e.isEmpty() {
-		return nil, ErrPathNotFound
+	if e.IsEmpty() {
+		return nil, fmt.Errorf("%w: %s", ErrPathNotFound, e)
 	}
 	return Base64(e.String())
 }
 
-// Unpack unpacks CRX3 extension to directory.
+// Unpack unpacks the CRX3 extension into a directory.
 func (e Extension) Unpack() error {
-	if e.isEmpty() {
-		return ErrPathNotFound
+	if e.IsEmpty() {
+		return fmt.Errorf("%w: %s", ErrPathNotFound, e)
 	}
 	return Unpack(e.String())
 }
 
 // PackTo packs zip file or an unpacked directory into a CRX3 file.
 func (e Extension) PackTo(dst string, pk *rsa.PrivateKey) error {
-	if e.isEmpty() {
+	if e.IsEmpty() {
 		return ErrPathNotFound
 	}
 	return Pack(e.String(), dst, pk)
@@ -113,8 +118,9 @@ func (e Extension) PackTo(dst string, pk *rsa.PrivateKey) error {
 
 // Pack packs zip file or an unpacked directory into a CRX3 file.
 func (e Extension) Pack(pk *rsa.PrivateKey) error {
-	if e.isEmpty() {
+	if e.IsEmpty() {
 		return ErrPathNotFound
 	}
-	return Pack(e.String(), "", pk)
+	dst := strings.TrimRight(e.String(), "/") + crxExt
+	return Pack(e.String(), dst, pk)
 }

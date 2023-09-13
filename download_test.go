@@ -38,7 +38,7 @@ func TestDownloadFromWebStore(t *testing.T) {
 
 		w.WriteHeader(http.StatusOK)
 
-		b, err := os.ReadFile("./testdata/unpack/extension.crx")
+		b, err := os.ReadFile("./testdata/dodyDol.crx")
 		assert.Nil(t, err)
 		_, err = io.Copy(w, bytes.NewReader(b))
 		assert.Nil(t, err)
@@ -59,13 +59,7 @@ func TestDownloadFromWebStoreNegative(t *testing.T) {
 	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		assert.Equal(t, http.MethodGet, r.Method)
 		assert.Equal(t, "/extension/extensionID", r.URL.Path)
-
 		w.WriteHeader(http.StatusBadRequest)
-
-		b, err := os.ReadFile("./testdata/unpack/extension.crx")
-		assert.Nil(t, err)
-		_, err = io.Copy(w, bytes.NewReader(b))
-		assert.Nil(t, err)
 	})
 	webStoreAPI := httptest.NewServer(handler)
 	defer webStoreAPI.Close()

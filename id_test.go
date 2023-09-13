@@ -11,10 +11,10 @@ import (
 )
 
 func TestID(t *testing.T) {
-	filename := "./testdata/unpack/extension.crx"
+	filename := "./testdata/dodyDol.crx"
 	id, err := ID(filename)
 	assert.Nil(t, err)
-	assert.Equal(t, "dgmchnekcpklnjppdmmjlgpmpohmpmgp", id)
+	assert.Equal(t, "kpkcennohgffjdgaelocingbmkjnpjgc", id)
 }
 
 func TestIDNegative(t *testing.T) {

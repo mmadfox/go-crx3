@@ -2,6 +2,7 @@ package commands
 
 import (
 	"errors"
+	"net/url"
 	"os"
 	"path"
 	"strings"
@@ -68,8 +69,12 @@ func newDownloadCmd() *cobra.Command {
 	return cmd
 }
 
-func extractExtensionID(u string) string {
-	urlParts := strings.Split(u, "/")
+func extractExtensionID(rawUrl string) string {
+	u, err := url.Parse(rawUrl)
+	if err != nil {
+		return ""
+	}
+	urlParts := strings.Split(u.Path, "/")
 	if len(urlParts) == 0 {
 		return ""
 	}
