@@ -26,6 +26,7 @@ Provides a sets of tools packing, unpacking, zip, unzip, download, gen id, etc..
 ### Installation
 ```ssh
 go get -u github.com/mediabuyerbot/go-crx3/crx3
+go install github.com/mediabuyerbot/go-crx3/crx3@latest
 ```
 
 ### Dev commands
