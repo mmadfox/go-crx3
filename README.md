@@ -29,6 +29,11 @@ go get -u github.com/mediabuyerbot/go-crx3/crx3
 go install github.com/mediabuyerbot/go-crx3/crx3@latest
 ```
 
+OR download the binary from here
+```
+https://github.com/mmadfox/go-crx3/releases
+```
+
 ### Dev commands
 ```shell script
 $ make proto 
