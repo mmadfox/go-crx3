@@ -1,0 +1,32 @@
+name: Release Go project
+
+on:
+  push:
+    tags:
+      - "*" 
+
+jobs:
+  build:
+    name: GoReleaser build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out code into the Go module directory
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0 
+
+      - name: Set up Go 1.21
+        uses: actions/setup-go@v2
+        with:
+          go-version: 1.21
+        id: go
+
+      - name: Run GoReleaser
+        uses: goreleaser/goreleaser-action@master
+        with:
+          version: latest
+          args: release --rm-dist
+          workdir: ./crx3
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
