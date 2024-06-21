@@ -7,10 +7,12 @@
 Provides a sets of tools packing, unpacking, zip, unzip, download, gen id, etc...
 
 ## Table of contents
++ [Code examples](/examples/)
 + [Installation](#installation)
 + [Dev commands](#commands)
 + [Examples](#examples)
   - [Encode to base64 string](#base64)
+  - [PublicKey from extension](#retriveres-public-key-from-extension)
   - [Pack a zip file or unzipped directory into a crx extension](#pack)
   - [Unpack chrome extension into current directory](#unpack)
   - [Download a chrome extension from the web store](#download)
@@ -107,6 +109,16 @@ fmt.Println(string(b))
 ```
 ```shell script
 $ crx3 base64 /path/to/ext.crx [-o /path/to/file] 
+```
+
+#### Retriveres public key from extension
+```go
+import crx3 "github.com/mediabuyerbot/go-crx3"
+
+pubkey, signature, err := crx3.Extension("/path/to/ext.crx").PublicKey()
+```
+```shell script
+$ crx3 pubkey /path/to/ext.crx [-o /path/to/file]  
 ```
 
 #### Download 

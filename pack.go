@@ -8,6 +8,8 @@ import (
 	"crypto/sha256"
 	"crypto/x509"
 	"encoding/binary"
+	"encoding/pem"
+	"fmt"
 	"io"
 	"os"
 	"path"
@@ -17,6 +19,129 @@ import (
 
 	"google.golang.org/protobuf/proto"
 )
+
+// PackZipToCRX reads a ZIP archive from the provided Reader, signs it using
+// the provided RSA private key, and writes the signed CRX file to the provided Writer.
+// This function is essential for producing production-ready CRX files that require
+// digital signatures to be installed in browsers. The function will return an error
+// if any issues occur during the zip reading, signing, or CRX writing processes.
+func PackZipToCRX(zip io.ReadSeeker, w io.Writer, pk *rsa.PrivateKey) error {
+	if zip == nil || w == nil || pk == nil {
+		return fmt.Errorf("crx3/pack: zip or writer or privateKey is nil")
+	}
+	publicKey, err := makePublicKey(pk)
+	if err != nil {
+		return fmt.Errorf("crx3/pack: failed to make public key: %w", err)
+	}
+	signedData, err := makeSignedData(publicKey)
+	if err != nil {
+		return fmt.Errorf("crx3/pack: failed to make signed data: %w", err)
+	}
+	signature, err := makeSign(zip, signedData, pk)
+	if err != nil {
+		return fmt.Errorf("crx3/pack: failed to make signature: %w", err)
+	}
+	header, err := makeHeader(publicKey, signature, signedData)
+	if err != nil {
+		return fmt.Errorf("crx3/pack: failed to make header: %w", err)
+	}
+	if _, err := zip.Seek(0, 0); err != nil {
+		return fmt.Errorf("crx3/pack: failed to seek zip: %w", err)
+	}
+	if err := copyZipToCRX(w, zip, header); err != nil {
+		return fmt.Errorf("crx3/pack: failed to copy zip to crx data: %w", err)
+	}
+	return nil
+}
+
+// WritePrivateKey writes the RSA private key to the provided io.Writer in the PEM format.
+// The function expects a non-nil *rsa.PrivateKey. If the key is nil, it returns an
+// ErrPrivateKeyNotFound error. This function handles the marshalling of the private key
+// into PKCS#8 format and then encodes it into PEM format before writing.
+//
+// Parameters:
+//
+//	w    : An io.Writer to which the PEM encoded private key will be written.
+//	key  : A non-nil *rsa.PrivateKey that will be marshalled and written.
+//
+// Returns:
+//
+//	An error if the private key is nil, if there is a marshalling error, or if writing
+//	to the io.Writer fails. The error includes a descriptive message to aid in debugging.
+//
+// Usage example:
+//
+//	file, err := os.Create("private_key.pem")
+//	if err != nil {
+//	    log.Fatal(err)
+//	}
+//	defer file.Close()
+//
+//	privKey, err := rsa.GenerateKey(rand.Reader, 2048)
+//	if err != nil {
+//	    log.Fatal(err)
+//	}
+//
+//	if err := WritePrivateKey(file, privKey); err != nil {
+//	    log.Printf("Failed to write private key: %v", err)
+//	}
+//
+// Note:
+//
+//	This function does not close the io.Writer; the caller is responsible for managing
+//	the writer's lifecycle, including opening and closing it.
+func WritePrivateKey(w io.Writer, key *rsa.PrivateKey) error {
+	if key == nil {
+		return ErrPrivateKeyNotFound
+	}
+	bytes, err := x509.MarshalPKCS8PrivateKey(key)
+	if err != nil {
+		return fmt.Errorf("crx3/pack: failed to marshal private key: %w", err)
+	}
+	block := &pem.Block{
+		Type:  "RSA PRIVATE KEY",
+		Bytes: bytes,
+	}
+	if _, err := w.Write(pem.EncodeToMemory(block)); err != nil {
+		return fmt.Errorf("crx3/pack: failed to write private key: %w", err)
+	}
+	return nil
+}
+
+// ReadZipFile opens and reads the contents of a zip file specified by 'filename'.
+// It can handle both direct paths to zip files or directories. If 'filename' is a directory,
+// the function zips its contents into a buffer and returns a reader for that buffer.
+// If 'filename' is a zip file, it reads the file into a buffer and returns a reader for it.
+// The function returns a *bytes.Reader to allow random access reads, which is particularly
+// useful for large files. It returns an error if the file cannot be opened, read, or if the
+// path does not correspond to a zip file or directory.
+func ReadZipFile(filename string) (*bytes.Reader, error) {
+	return readZipFile(filename)
+}
+
+func readZipFile(filename string) (*bytes.Reader, error) {
+	var zipData bytes.Buffer
+
+	switch {
+	case isDir(filename):
+		if err := Zip(&zipData, filename); err != nil {
+			return nil, err
+		}
+	case isZip(filename):
+		file, err := os.Open(filename)
+		if err != nil {
+			return nil, err
+		}
+		defer file.Close()
+		if _, err := io.Copy(&zipData, file); err != nil {
+			return nil, err
+		}
+	default:
+		return nil, ErrUnknownFileExtension
+	}
+
+	return bytes.NewReader(zipData.Bytes()), nil
+}
 
 const (
 	crxExt = ".crx"
@@ -93,36 +218,31 @@ func Pack(src string, dst string, pk *rsa.PrivateKey) (err error) {
 	return nil
 }
 
-func readZipFile(filename string) (data io.ReadSeeker, err error) {
-	var zipData bytes.Buffer
-
-	switch {
-	case isDir(filename):
-		if err := Zip(&zipData, filename); err != nil {
-			return nil, err
-		}
-	case isZip(filename):
-		file, err := os.Open(filename)
-		if err != nil {
-			return nil, err
-		}
-		defer file.Close()
-		if _, err := io.Copy(&zipData, file); err != nil {
-			return nil, err
-		}
-	default:
-		return nil, ErrUnknownFileExtension
-	}
-
-	return bytes.NewReader(zipData.Bytes()), nil
-}
-
 func writeToCRX(filename string, zipFile io.ReadSeeker, header []byte) error {
 	crx, err := os.Create(filename)
 	if err != nil {
 		return err
 	}
 	if _, err = crx.Write([]byte("Cr24")); err != nil {
+		return err
+	}
+	if err := binary.Write(crx, binary.LittleEndian, uint32(3)); err != nil {
+		return err
+	}
+	if err := binary.Write(crx, binary.LittleEndian, uint32(len(header))); err != nil {
+		return err
+	}
+	if _, err := crx.Write(header); err != nil {
+		return err
+	}
+	if _, err := io.Copy(crx, zipFile); err != nil {
+		return err
+	}
+	return nil
+}
+
+func copyZipToCRX(crx io.Writer, zipFile io.ReadSeeker, header []byte) error {
+	if _, err := crx.Write([]byte("Cr24")); err != nil {
 		return err
 	}
 	if err := binary.Write(crx, binary.LittleEndian, uint32(3)); err != nil {
