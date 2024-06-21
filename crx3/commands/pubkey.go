@@ -33,7 +33,8 @@ func newPubkeyCmd() *cobra.Command {
 				return err
 			}
 			if len(opts.Outfile) == 0 {
-				fmt.Println(string(pubkey))
+				fmt.Print(string(pubkey))
+				return nil
 			}
 			file, err := os.OpenFile(opts.Outfile, os.O_CREATE|os.O_WRONLY, 0644)
 			if err != nil {

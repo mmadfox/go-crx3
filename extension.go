@@ -238,7 +238,8 @@ func parseManifestFromZip(e string) (string, error) {
 	}
 	defer zipReader.Close()
 	for _, file := range zipReader.File {
-		if file.Name == "manifest.json" {
+		baseFilename := filepath.Base(file.Name)
+		if baseFilename == "manifest.json" {
 			fileReader, err := file.Open()
 			if err != nil {
 				return "", fmt.Errorf("crx3: failed to open file %s: %w", file.Name, err)

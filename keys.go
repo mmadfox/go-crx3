@@ -86,3 +86,13 @@ func LoadPrivateKey(filename string) (*rsa.PrivateKey, error) {
 	}
 	return r.(*rsa.PrivateKey), nil
 }
+
+// PublicKeyToPEM converts the provided RSA public key to a PEM-encoded byte slice.
+func PrivateKeyToPEM(key *rsa.PrivateKey) []byte {
+	bytes, _ := x509.MarshalPKCS8PrivateKey(key)
+	block := &pem.Block{
+		Type:  "RSA PRIVATE KEY",
+		Bytes: bytes,
+	}
+	return pem.EncodeToMemory(block)
+}

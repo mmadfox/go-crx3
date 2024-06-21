@@ -1,7 +1,7 @@
 package commands
 
 import (
-	"errors"
+	"fmt"
 	"strings"
 
 	crx3 "github.com/mediabuyerbot/go-crx3"
@@ -17,21 +17,20 @@ func newKeygenCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "keygen [file]",
 		Short: "Create a new private key",
-		Args: func(cmd *cobra.Command, args []string) error {
-			if len(args) < 1 {
-				return errors.New("infile is required")
-			}
-			return nil
-		},
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			crx3.SetDefaultKeySize(sanitizeKeySize(opts.PrivateKeySize))
-			filename := args[0]
-			if !strings.HasSuffix(filename, ".pem") {
-				filename = filename + ".pem"
-			}
 			pk, err := crx3.NewPrivateKey()
 			if err != nil {
 				return err
+			}
+			if len(args) == 0 {
+				key := crx3.PrivateKeyToPEM(pk)
+				fmt.Print(string(key))
+				return nil
+			}
+			filename := args[0]
+			if !strings.HasSuffix(filename, ".pem") {
+				filename = filename + ".pem"
 			}
 			return crx3.SavePrivateKey(filename, pk)
 		},
