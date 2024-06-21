@@ -2,6 +2,7 @@ package crx3
 
 import (
 	"crypto/rsa"
+	"io"
 	"os"
 	"path/filepath"
 	"testing"
@@ -88,6 +89,67 @@ func TestPack(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			if err := Pack(tt.args.src, tt.args.dst, tt.args.pk); (err != nil) != tt.wantErr {
 				t.Errorf("Pack() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}
+
+func TestReadZipFile(t *testing.T) {
+	type args struct {
+		filename string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name:    "should return error when filename is empty",
+			args:    args{filename: ""},
+			wantErr: true,
+		},
+		{
+			name:    "should return error when file does not exists",
+			args:    args{filename: "/path/not/exists"},
+			wantErr: true,
+		},
+		{
+			name:    "should return error when file is not zip",
+			args:    args{filename: "./testdata/bobbyMol.crx"},
+			wantErr: true,
+		},
+		{
+			name:    "should not return error when file is fake zip",
+			args:    args{filename: "./testdata/fake.zip"},
+			wantErr: true,
+		},
+		{
+			name:    "should not return error when file is zip",
+			args:    args{filename: "./testdata/bobbyMol.zip"},
+			wantErr: false,
+		},
+		{
+			name:    "should not return error when file is directory",
+			args:    args{filename: "./testdata/extension"},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			r, err := ReadZipFile(tt.args.filename)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("ReadZipFile() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if err != nil {
+				return
+			}
+			data, err := io.ReadAll(r)
+			if err != nil {
+				panic(err)
+			}
+			if len(data) == 0 {
+				t.Errorf("ReadZipFile() data = %v, want not empty", data)
 			}
 		})
 	}

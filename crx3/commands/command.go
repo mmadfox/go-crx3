@@ -18,6 +18,7 @@ func New() *cobra.Command {
 	cmd.AddCommand(newKeygenCmd())
 	cmd.AddCommand(newDownloadCmd())
 	cmd.AddCommand(newIDCmd())
+	cmd.AddCommand(newPubkeyCmd())
 
 	return cmd
 }

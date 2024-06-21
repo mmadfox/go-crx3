@@ -8,7 +8,12 @@ import (
 	"github.com/spf13/cobra"
 )
 
+type keygenOpts struct {
+	PrivateKeySize int
+}
+
 func newKeygenCmd() *cobra.Command {
+	var opts keygenOpts
 	cmd := &cobra.Command{
 		Use:   "keygen [file]",
 		Short: "Create a new private key",
@@ -19,6 +24,7 @@ func newKeygenCmd() *cobra.Command {
 			return nil
 		},
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
+			crx3.SetDefaultKeySize(sanitizeKeySize(opts.PrivateKeySize))
 			filename := args[0]
 			if !strings.HasSuffix(filename, ".pem") {
 				filename = filename + ".pem"
@@ -30,5 +36,17 @@ func newKeygenCmd() *cobra.Command {
 			return crx3.SavePrivateKey(filename, pk)
 		},
 	}
+
+	cmd.Flags().IntVarP(&opts.PrivateKeySize, "size", "s", 4096, "private key size")
+
 	return cmd
+}
+
+func sanitizeKeySize(size int) int {
+	switch size {
+	case 2048, 3072, 4096:
+		return size
+	default:
+		return 4096
+	}
 }

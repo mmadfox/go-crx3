@@ -1,5 +1,6 @@
 {
   "manifest_version": 2,
   "name": "go-crx3",
-  "version": "999"
+  "version": "999",
+  "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAngWK1vsGK7o9HK7ZzSBG56+nVMg3AVqeBpTY5DaGnHyryg6Ir693a1KQ/5S3MnEBD8+bb1jnQpMOiQyndmLg6DjI7xPkVskljNt/j8I9124NseR5zjZXVsQGPW6LDDpVTHC+PUT0KkXCO+X3h8x2Inh7p7joR+1vLo/Ur9eRdjw/p/zAtxCYnWrw1Vm3CVSLCr3CqatJ0Jwyw00ANY6k5ebYHwKM9NVgsRozQX1OIPjWwGxHcj+XUQseqyfWa7XGlXgopom62ptkq7CVjgG5f7SCaoHEVyC1J8gsnN/wSJSB/m6JL8VQVFVIRQdWLMC4DLqxxiEy9aADKTM2smaAVwIDAQAB%"
 }

@@ -9,11 +9,12 @@ import (
 )
 
 type packOpts struct {
-	PrivateKey string
-	Outfile    string
+	PrivateKey     string
+	Outfile        string
+	PrivateKeySize int
 }
 
-func (o packOpts) HasPem() bool {
+func (o packOpts) hasPem() bool {
 	return len(o.PrivateKey) > 0
 }
 
@@ -29,9 +30,10 @@ func newPackCmd() *cobra.Command {
 			return nil
 		},
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
+			crx3.SetDefaultKeySize(sanitizeKeySize(opts.PrivateKeySize))
 			unpacked := args[0]
 			var pk *rsa.PrivateKey
-			if opts.HasPem() {
+			if opts.hasPem() {
 				pk, err = crx3.LoadPrivateKey(opts.PrivateKey)
 				if err != nil {
 					return err
@@ -43,6 +45,7 @@ func newPackCmd() *cobra.Command {
 
 	cmd.Flags().StringVarP(&opts.PrivateKey, "pem", "p", "", "load private key")
 	cmd.Flags().StringVarP(&opts.Outfile, "outfile", "o", "", "save to file")
+	cmd.Flags().IntVarP(&opts.PrivateKeySize, "size", "s", 4096, "private key size")
 
 	return cmd
 }

@@ -8,4 +8,5 @@ var (
 	ErrExtensionNotSpecified = errors.New("crx3: extension id not specified")
 	ErrPathNotFound          = errors.New("crx3: filepath not found")
 	ErrPrivateKeyNotFound    = errors.New("crx3: private key not found")
+	ErrInvalidReader         = errors.New("crx3: invalid reader")
 )

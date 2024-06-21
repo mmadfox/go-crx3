@@ -21,10 +21,6 @@ func isDir(filename string) bool {
 	return stat.IsDir()
 }
 
-func isCRC(filename string) bool {
-	return isCRX(filename)
-}
-
 func isCRX(filename string) bool {
 	size := 12
 	file, err := os.Open(filename)
