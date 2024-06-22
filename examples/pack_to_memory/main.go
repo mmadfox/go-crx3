@@ -1,6 +1,7 @@
 package main
 
 import (
+	"archive/zip"
 	"bytes"
 	"fmt"
 	"os"
@@ -35,4 +36,13 @@ func main() {
 
 	fmt.Printf("CRX file has been written to the buffer\n")
 	fmt.Printf("CRX file size: %d bytes\n", buf.Len())
+
+	walkExtension(buf)
+}
+
+func walkExtension(buf *bytes.Buffer) {
+	zipReader, _ := zip.NewReader(bytes.NewReader(buf.Bytes()), int64(buf.Len()))
+	for _, file := range zipReader.File {
+		fmt.Printf("File: %s\n", file.Name)
+	}
 }

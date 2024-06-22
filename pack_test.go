@@ -1,7 +1,9 @@
 package crx3
 
 import (
+	"bytes"
 	"crypto/rsa"
+	"encoding/pem"
 	"io"
 	"os"
 	"path/filepath"
@@ -151,6 +153,50 @@ func TestReadZipFile(t *testing.T) {
 			if len(data) == 0 {
 				t.Errorf("ReadZipFile() data = %v, want not empty", data)
 			}
+		})
+	}
+}
+
+func TestWritePrivateKey(t *testing.T) {
+	pk, err := NewPrivateKey()
+	if err != nil {
+		panic(err)
+	}
+	type args struct {
+		key *rsa.PrivateKey
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name:    "sould return error when private key is nil",
+			args:    args{key: nil},
+			wantErr: true,
+		},
+		{
+			name: "should write private key",
+			args: args{key: pk},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			w := &bytes.Buffer{}
+			err := WritePrivateKey(w, tt.args.key)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("WritePrivateKey() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if err != nil {
+				return
+			}
+			block := &pem.Block{
+				Type:  "RSA PRIVATE KEY",
+				Bytes: w.Bytes(),
+			}
+			got := pem.EncodeToMemory(block)
+			require.Equal(t, string(got), string(pem.EncodeToMemory(block)))
 		})
 	}
 }
