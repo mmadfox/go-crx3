@@ -16,17 +16,17 @@ jobs:
         with:
           fetch-depth: 0 
 
-      - name: Set up Go 1.21
+      - name: Set up Go 1.22
         uses: actions/setup-go@v2
         with:
-          go-version: 1.21
+          go-version: 1.22
         id: go
 
       - name: Run GoReleaser
         uses: goreleaser/goreleaser-action@master
         with:
           version: latest
-          args: release --rm-dist
+          args: release 
           workdir: ./crx3
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
