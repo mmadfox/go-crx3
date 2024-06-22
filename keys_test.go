@@ -51,3 +51,12 @@ func TestLoadPrivateKeyNegative(t *testing.T) {
 	assert.Error(t, err)
 	assert.Nil(t, key)
 }
+
+func TestPrivateKeyToPEM(t *testing.T) {
+	key, err := NewPrivateKey()
+	assert.Nil(t, err)
+	assert.Nil(t, key.Validate())
+	pem := PrivateKeyToPEM(key)
+	assert.NotNil(t, pem)
+	assert.NotEmpty(t, pem)
+}

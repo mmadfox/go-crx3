@@ -366,6 +366,14 @@ func TestExtension_PublicKey(t *testing.T) {
 			name: "should return public key from header extension",
 			e:    Extension("./testdata/dodyDol.crx"),
 		},
+		{
+			name: "should return public key from zipped extension",
+			e:    Extension("./testdata/withkey.zip"),
+		},
+		{
+			name: "should return public key from unpacked extension",
+			e:    Extension("./testdata/extension"),
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
