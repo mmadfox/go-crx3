@@ -1,6 +1,10 @@
 package commands
 
 import (
+	"os/user"
+	"path/filepath"
+	"strings"
+
 	"github.com/spf13/cobra"
 )
 
@@ -21,4 +25,19 @@ func New() *cobra.Command {
 	cmd.AddCommand(newPubkeyCmd())
 
 	return cmd
+}
+
+func toPath(path string) (string, error) {
+	if strings.HasPrefix(path, "~") {
+		usr, err := user.Current()
+		if err != nil {
+			return "", err
+		}
+		home := usr.HomeDir
+		if path == "~" {
+			return home, nil
+		}
+		return filepath.Join(home, path[2:]), nil
+	}
+	return path, nil
 }

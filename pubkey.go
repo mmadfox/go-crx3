@@ -61,9 +61,13 @@ func publicKeyToPEM(pubKeyBytes []byte) ([]byte, error) {
 	if !ok {
 		return nil, fmt.Errorf("crx3/pubkey: public key is not of type *rsa.PublicKey")
 	}
+	data, err := x509.MarshalPKIXPublicKey(rsaPubKey)
+	if err != nil {
+		return nil, fmt.Errorf("crx3/pubkey: failed to marshal public key: %w", err)
+	}
 	pemBytes := pem.EncodeToMemory(&pem.Block{
 		Type:  "RSA PUBLIC KEY",
-		Bytes: x509.MarshalPKCS1PublicKey(rsaPubKey),
+		Bytes: data,
 	})
 	return pemBytes, nil
 }

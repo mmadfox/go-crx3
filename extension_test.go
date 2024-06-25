@@ -3,6 +3,7 @@ package crx3
 import (
 	"crypto/rsa"
 	"errors"
+	"fmt"
 	"os"
 	"path/filepath"
 	"reflect"
@@ -11,12 +12,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
-
-func TestExtension_ID(t *testing.T) {
-	id, err := Extension("./testdata/dodyDol.crx").ID()
-	assert.Nil(t, err)
-	assert.Equal(t, "kpkcennohgffjdgaelocingbmkjnpjgc", id)
-}
 
 func TestExtension_IsEmpty(t *testing.T) {
 	require.True(t, Extension("").IsEmpty())
@@ -303,8 +298,69 @@ func TestExtension_Pack(t *testing.T) {
 	}
 }
 
-func TestExtension_PublicKeyFromManifest(t *testing.T) {
-	want := []byte("MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAngWK1vsGK7o9HK7ZzSBG56+nVMg3AVqeBpTY5DaGnHyryg6Ir693a1KQ/5S3MnEBD8+bb1jnQpMOiQyndmLg6DjI7xPkVskljNt/j8I9124NseR5zjZXVsQGPW6LDDpVTHC+PUT0KkXCO+X3h8x2Inh7p7joR+1vLo/Ur9eRdjw/p/zAtxCYnWrw1Vm3CVSLCr3CqatJ0Jwyw00ANY6k5ebYHwKM9NVgsRozQX1OIPjWwGxHcj+XUQseqyfWa7XGlXgopom62ptkq7CVjgG5f7SCaoHEVyC1J8gsnN/wSJSB/m6JL8VQVFVIRQdWLMC4DLqxxiEy9aADKTM2smaAVwIDAQAB%")
+func TestExtension_ID(t *testing.T) {
+	tests := []struct {
+		name    string
+		e       Extension
+		want    string
+		wantErr bool
+	}{
+		{
+			name:    "should return error when extension is empty",
+			e:       Extension(""),
+			wantErr: true,
+		},
+		{
+			name:    "should return error when extension is not found",
+			e:       Extension("./testdata/withkey.crx.pem"),
+			wantErr: true,
+		},
+		{
+			name:    "should return error when key not found in manifest",
+			e:       Extension("./testdata/doodyDol.zip"),
+			wantErr: true,
+		},
+		{
+			name:    "should return extension id from unpacked extension",
+			e:       Extension("./testdata/extension"),
+			want:    "nigbihjmcbekdlkgdceknpanajdpncle",
+			wantErr: false,
+		},
+		{
+			name:    "should return extension id from zipped extension",
+			e:       Extension("./testdata/withkey.zip"),
+			want:    "nigbihjmcbekdlkgdceknpanajdpncle",
+			wantErr: false,
+		},
+		{
+			name:    "should return extension id from crx extension manifest",
+			e:       Extension("./testdata/withkey.crx"),
+			want:    "nigbihjmcbekdlkgdceknpanajdpncle",
+			wantErr: false,
+		},
+		{
+			name: "should return extension id from crx extension",
+			e:    Extension("./testdata/dodyDol.crx"),
+			want: "kpkcennohgffjdgaelocingbmkjnpjgc",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := tt.e.ID()
+			if (err != nil) != tt.wantErr {
+				t.Errorf("Extension.ID() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("Extension.ID() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestExtension_PublicKey(t *testing.T) {
+	expectedPubKey := []byte(`MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAngWK1vsGK7o9HK7ZzSBG56+nVMg3AVqeBpTY5DaGnHyryg6Ir693a1KQ/5S3MnEBD8+bb1jnQpMOiQyndmLg6DjI7xPkVskljNt/j8I9124NseR5zjZXVsQGPW6LDDpVTHC+PUT0KkXCO+X3h8x2Inh7p7joR+1vLo/Ur9eRdjw/p/zAtxCYnWrw1Vm3CVSLCr3CqatJ0Jwyw00ANY6k5ebYHwKM9NVgsRozQX1OIPjWwGxHcj+XUQseqyfWa7XGlXgopom62ptkq7CVjgG5f7SCaoHEVyC1J8gsnN/wSJSB/m6JL8VQVFVIRQdWLMC4DLqxxiEy9aADKTM2smaAVwIDAQAB`)
+	expectedPubKey1 := []byte(`MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAj/u/XDdjlDyw7gHEtaaasZ9GdG8WOKAyJzXd8HFrDtz2Jcuy7er7MtWvHgNDA0bwpznbI5YdZeV4UfCEsA4SrA5b3MnWTHwA1bgbiDM+L9rrqvcadcKuOlTeN48Q0ijmhHlNFbTzvT9W0zw/GKv8LgXAHggxtmHQ/Z9PP2QNF5O8rUHHSL4AJ6hNcEKSBVSmbbjeVm4gSXDuED5r0nwxvRtupDxGYp8IZpP5KlExqNu1nbkPc+igCTIB6XsqijagzxewUHCdovmkb2JNtskx/PMIEv+TvWIx2BzqGp71gSh/dV7SJ3rClvWd2xj8dtxG8FfAWDTIIi0qZXWn2QhizQIDAQAB`)
 	tests := []struct {
 		name    string
 		e       Extension
@@ -317,67 +373,40 @@ func TestExtension_PublicKeyFromManifest(t *testing.T) {
 			wantErr: true,
 		},
 		{
-			name:    "should return error when manifest not found",
+			name:    "should return public key from unpacked extension",
 			e:       Extension("./testdata/emptydir"),
 			wantErr: true,
 		},
 		{
-			name: "should return public key from unpacked extension when key is found in manifest",
-			e:    Extension("./testdata/extension"),
-			want: want,
-		},
-		{
-			name: "should return public key from zipped extension when key is found in manifest",
-			e:    Extension("./testdata/withkey.zip"),
-			want: want,
-		},
-		{
-			name: "should return public key from packed extension when key is found in manifest",
-			e:    Extension("./testdata/withkey.crx"),
-			want: want,
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			got, _, err := tt.e.PublicKey()
-			if (err != nil) != tt.wantErr {
-				t.Errorf("Extension.PublicKey() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
-			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("Extension.PublicKey() got = %v, want %v", got, tt.want)
-			}
-		})
-	}
-}
-
-func TestExtension_PublicKey(t *testing.T) {
-	tests := []struct {
-		name    string
-		e       Extension
-		wantErr bool
-	}{
-		{
-			name:    "should return error when extension is empty",
-			e:       Extension(""),
+			name:    "should return error when extension is not found",
+			e:       Extension("./testdata/withkey.crx.pem"),
 			wantErr: true,
-		},
-		{
-			name: "should return public key from header extension",
-			e:    Extension("./testdata/dodyDol.crx"),
-		},
-		{
-			name: "should return public key from zipped extension",
-			e:    Extension("./testdata/withkey.zip"),
 		},
 		{
 			name: "should return public key from unpacked extension",
 			e:    Extension("./testdata/extension"),
+			want: expectedPubKey,
+		},
+		{
+			name: "should return public key from zipped extension",
+			e:    Extension("./testdata/withkey.zip"),
+			want: expectedPubKey,
+		},
+		{
+			name: "should return public key from crx extension",
+			e:    Extension("./testdata/withkey.crx"),
+			want: expectedPubKey,
+		},
+		{
+			name: "should return public key from crx extension header",
+			e:    Extension("./testdata/dodyDol.crx"),
+			want: expectedPubKey1,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			got, _, err := tt.e.PublicKey()
+			fmt.Println(string(got))
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Extension.PublicKey() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -385,8 +414,8 @@ func TestExtension_PublicKey(t *testing.T) {
 			if err != nil {
 				return
 			}
-			if len(got) == 0 {
-				t.Errorf("Extension.PublicKey() got = %v, want not empty", got)
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("Extension.PublicKey() got = %v, want %v", got, tt.want)
 			}
 		})
 	}

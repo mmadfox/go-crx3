@@ -5,6 +5,7 @@ import (
 	"encoding/binary"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -66,4 +67,69 @@ func TestIDNegative_UnmarshalSignedData(t *testing.T) {
 	assert.Error(t, err)
 	assert.Empty(t, id)
 	assert.Nil(t, os.Remove(filename))
+}
+
+func TestIDFromPubKey(t *testing.T) {
+	var pubKey1 = []byte(`MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAj/u/XDdjlDyw7gHEtaaasZ9GdG8WOKAyJzXd8HFrDtz2Jcuy7er7MtWvHgNDA0bwpznbI5YdZeV4UfCEsA4SrA5b3MnWTHwA1bgbiDM+L9rrqvcadcKuOlTeN48Q0ijmhHlNFbTzvT9W0zw/GKv8LgXAHggxtmHQ/Z9PP2QNF5O8rUHHSL4AJ6hNcEKSBVSmbbjeVm4gSXDuED5r0nwxvRtupDxGYp8IZpP5KlExqNu1nbkPc+igCTIB6XsqijagzxewUHCdovmkb2JNtskx/PMIEv+TvWIx2BzqGp71gSh/dV7SJ3rClvWd2xj8dtxG8FfAWDTIIi0qZXWn2QhizQIDAQAB`)
+	var pubKey2 = []byte(`
+-----BEGIN PUBLIC KEY-----
+MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAj/u/XDdjlDyw7gHEtaaa
+sZ9GdG8WOKAyJzXd8HFrDtz2Jcuy7er7MtWvHgNDA0bwpznbI5YdZeV4UfCEsA4S
+rA5b3MnWTHwA1bgbiDM+L9rrqvcadcKuOlTeN48Q0ijmhHlNFbTzvT9W0zw/GKv8
+LgXAHggxtmHQ/Z9PP2QNF5O8rUHHSL4AJ6hNcEKSBVSmbbjeVm4gSXDuED5r0nwx
+vRtupDxGYp8IZpP5KlExqNu1nbkPc+igCTIB6XsqijagzxewUHCdovmkb2JNtskx
+/PMIEv+TvWIx2BzqGp71gSh/dV7SJ3rClvWd2xj8dtxG8FfAWDTIIi0qZXWn2Qhi
+zQIDAQAB
+-----END PUBLIC KEY-----
+`)
+	expectedExtensionID := "lfoeajgcchlidpicbabpmckkejpckcfb"
+	type args struct {
+		pubKey []byte
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    string
+		wantErr bool
+	}{
+		{
+			name:    "should return error when public key is empty",
+			args:    args{pubKey: []byte{}},
+			wantErr: true,
+		},
+		{
+			name:    "should reutrn error when public key is invalid",
+			args:    args{pubKey: []byte(strings.Repeat("a", 128))},
+			wantErr: true,
+		},
+		{
+			name:    "should return extension ID from public key",
+			args:    args{pubKey: pubKey1},
+			want:    expectedExtensionID,
+			wantErr: false,
+		},
+		{
+			name:    "should return error when base64 decoding fails",
+			args:    args{pubKey: []byte(strings.Repeat("~", 128))},
+			wantErr: true,
+		},
+		{
+			name:    "should return extension ID from formatted public key",
+			args:    args{pubKey: pubKey2},
+			want:    expectedExtensionID,
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := IDFromPubKey(tt.args.pubKey)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("IDFromPubKey() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("IDFromPubKey() = %v, want %v", got, tt.want)
+			}
+		})
+	}
 }
