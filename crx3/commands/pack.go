@@ -52,7 +52,7 @@ func newPackCmd() *cobra.Command {
 
 	cmd.Flags().StringVarP(&opts.PrivateKey, "pem", "p", "", "load private key")
 	cmd.Flags().StringVarP(&opts.Outfile, "outfile", "o", "", "save to file")
-	cmd.Flags().IntVarP(&opts.PrivateKeySize, "size", "s", 4096, "private key size")
+	cmd.Flags().IntVarP(&opts.PrivateKeySize, "size", "s", 2048, "private key size")
 
 	return cmd
 }

@@ -41,3 +41,12 @@ func toPath(path string) (string, error) {
 	}
 	return path, nil
 }
+
+func sanitizeKeySize(size int) int {
+	switch size {
+	case 2048, 3072, 4096:
+		return size
+	default:
+		return 2048
+	}
+}

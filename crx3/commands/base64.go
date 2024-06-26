@@ -31,13 +31,21 @@ func newBase64Cmd() *cobra.Command {
 			return nil
 		},
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
-			extension := crx3.Extension(args[0])
+			infile, err := toPath(args[0])
+			if err != nil {
+				return fmt.Errorf("invalid infile path: %w", err)
+			}
+			outfile, err := toPath(opts.Outfile)
+			if err != nil {
+				return fmt.Errorf("invalid outfile path: %w", err)
+			}
+			extension := crx3.Extension(infile)
 			b, err := extension.Base64()
 			if err != nil {
 				return err
 			}
-			if opts.HasOutfile() {
-				file, err := os.Create(opts.Outfile)
+			if len(outfile) > 0 {
+				file, err := os.Create(outfile)
 				if err != nil {
 					return err
 				}

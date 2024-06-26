@@ -8,7 +8,7 @@ import (
 	"os"
 )
 
-var defaultKeySize = 4096
+var defaultKeySize = 2048
 
 // SetDefaultKeySize sets the global default key size for RSA key generation.
 // It accepts key sizes of 2048, 3072, or 4096 bits. If a size outside these
