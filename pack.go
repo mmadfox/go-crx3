@@ -165,11 +165,13 @@ func Pack(src string, dst string, pk *rsa.PrivateKey) (err error) {
 	)
 
 	if len(src) == 0 || len(dst) == 0 {
-		return ErrPathNotFound
+		return fmt.Errorf("%w, source or destination is empty",
+			ErrPathNotFound)
 	}
 
 	if hasDst && isNotCrxSuffix {
-		return ErrUnknownFileExtension
+		return fmt.Errorf("%w, destination file must have a .crx extension",
+			ErrUnknownFileExtension)
 	}
 
 	zipData, err := readZipFile(src)

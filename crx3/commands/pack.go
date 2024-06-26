@@ -31,7 +31,10 @@ func newPackCmd() *cobra.Command {
 		},
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			crx3.SetDefaultKeySize(sanitizeKeySize(opts.PrivateKeySize))
-			unpacked := args[0]
+			unpacked, err := toPath(args[0])
+			if err != nil {
+				return err
+			}
 			var pk *rsa.PrivateKey
 			if opts.hasPem() {
 				pk, err = crx3.LoadPrivateKey(opts.PrivateKey)
@@ -39,13 +42,17 @@ func newPackCmd() *cobra.Command {
 					return err
 				}
 			}
-			return crx3.Pack(unpacked, opts.Outfile, pk)
+			out, err := toPath(opts.Outfile)
+			if err != nil {
+				return err
+			}
+			return crx3.Pack(unpacked, out, pk)
 		},
 	}
 
 	cmd.Flags().StringVarP(&opts.PrivateKey, "pem", "p", "", "load private key")
 	cmd.Flags().StringVarP(&opts.Outfile, "outfile", "o", "", "save to file")
-	cmd.Flags().IntVarP(&opts.PrivateKeySize, "size", "s", 4096, "private key size")
+	cmd.Flags().IntVarP(&opts.PrivateKeySize, "size", "s", 2048, "private key size")
 
 	return cmd
 }

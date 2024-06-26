@@ -11,7 +11,11 @@ import (
 func newIDCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "id [infile]",
-		Short: "Generate extension id",
+		Short: "Generate id from header extension or manifest file",
+		Long: `
+The identifier is generated from the hash of the public key, which is located in the extension header or declared in the key field of the manifest.
+If the key is specified in the manifest, the public key is taken from there; otherwise, the search continues in the header.
+`,
 		Args: func(cmd *cobra.Command, args []string) error {
 			if len(args) < 1 {
 				return errors.New("infile is required")
@@ -19,8 +23,12 @@ func newIDCmd() *cobra.Command {
 			return nil
 		},
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
-			infile := args[0]
-			id, err := crx3.ID(infile)
+			infile, err := toPath(args[0])
+			if err != nil {
+				return err
+			}
+			ext := crx3.Extension(infile)
+			id, err := ext.ID()
 			if err != nil {
 				return err
 			}

@@ -2,6 +2,7 @@ package commands
 
 import (
 	"errors"
+	"fmt"
 	"os"
 	"strings"
 
@@ -29,7 +30,10 @@ func newUnzipCmd() *cobra.Command {
 			return nil
 		},
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
-			infile := args[0]
+			infile, err := toPath(args[0])
+			if err != nil {
+				return fmt.Errorf("invalid infile: %w", err)
+			}
 			zipFile, err := os.Open(infile)
 			if err != nil {
 				return err

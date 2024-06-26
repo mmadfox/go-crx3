@@ -21,9 +21,46 @@ func (e Extension) String() string {
 	return string(e)
 }
 
-// ID returns an extension id.
+// ID calculates the Chrome Extension ID for the Extension instance.
+// It supports directories, ZIP archives, and CRX3 files. If the extension is unpacked,
+// contained in a ZIP archive, or is a CRX3 file with a specified key in its manifest,
+// the ID is generated from this key. The function returns an error if the extension is empty,
+// the file cannot be read, the key is not found, or the file format is unsupported.
 func (e Extension) ID() (string, error) {
-	return ID(e.String())
+	if e.IsEmpty() {
+		return "", fmt.Errorf("%w: %s", ErrPathNotFound, e)
+	}
+	switch {
+	case e.IsDir():
+		manifest := manifestFile(e.String())
+		file, err := os.ReadFile(manifest)
+		if err != nil {
+			return "", fmt.Errorf("crx3: failed to read file %s: %w", manifest, err)
+		}
+		pubkey := parseKeyFromManifest(file)
+		if len(pubkey) == 0 {
+			return "", fmt.Errorf("crx3: failed to parse key from manifest file %s", manifest)
+		}
+		return IDFromPubKey([]byte(pubkey))
+	case e.IsZip():
+		pubkey, err := parseManifestFromZip(e.String())
+		if err != nil {
+			return "", err
+		}
+		if len(pubkey) == 0 {
+			return "", fmt.Errorf("crx3: failed to parse key from manifest file %s", e)
+		}
+		return IDFromPubKey([]byte(pubkey))
+	case e.IsCRX3():
+		pubkey, err := parseManifestFromZip(e.String())
+		if err != nil || len(pubkey) == 0 {
+			return ID(e.String())
+		}
+		if len(pubkey) > 0 {
+			return IDFromPubKey([]byte(pubkey))
+		}
+	}
+	return "", fmt.Errorf("%w: %s", ErrUnknownFileExtension, e)
 }
 
 // IsEmpty checks if the extension is empty.
@@ -271,8 +308,11 @@ func parseKeyFromManifest(data []byte) string {
 
 func formatPemKey(key []byte) []byte {
 	str := string(key)
+	str = strings.TrimSpace(str)
 	str = strings.Replace(str, "-----BEGIN RSA PUBLIC KEY-----", "", 1)
 	str = strings.Replace(str, "-----END RSA PUBLIC KEY-----", "", 1)
+	str = strings.Replace(str, "-----BEGIN PUBLIC KEY-----", "", 1)
+	str = strings.Replace(str, "-----END PUBLIC KEY-----", "", 1)
 	str = strings.TrimSpace(str)
 	str = strings.ReplaceAll(str, "\n", "")
 	return []byte(str)

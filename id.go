@@ -2,6 +2,9 @@ package crx3
 
 import (
 	"bytes"
+	"crypto/sha256"
+	"crypto/x509"
+	"encoding/base64"
 	"encoding/binary"
 	"fmt"
 	"os"
@@ -48,6 +51,47 @@ func ID(filename string) (id string, err error) {
 		index := idx[char]
 		buf.WriteString(string(symbols[index]))
 	}
+	return buf.String(), nil
+}
+
+// IDFromPubKey generates the Chrome Extension ID from a public key.
+// It handles PEM formatting, base64 decoding, and SHA-256 hashing to produce the ID.
+// Returns the ID or an error if the key processing fails.
+func IDFromPubKey(pubKey []byte) (string, error) {
+	if len(pubKey) < 64 {
+		return "", fmt.Errorf("crx3/id: public key is empty")
+	}
+
+	if bytes.Contains(pubKey[:64], []byte("PUBLIC KEY")) {
+		pubKey = formatPemKey(pubKey)
+	}
+
+	dbuf := make([]byte, base64.StdEncoding.DecodedLen(len(pubKey)))
+	n, err := base64.StdEncoding.Decode(dbuf, pubKey)
+	if err != nil {
+		return "", fmt.Errorf("crx3/id: failed to decode public key: %w", err)
+	}
+
+	pubKeyParsed, err := x509.ParsePKIXPublicKey(dbuf[:n])
+	if err != nil {
+		return "", fmt.Errorf("crx3/id: failed to parse public key: %w", err)
+	}
+	pubKeyBytes, err := x509.MarshalPKIXPublicKey(pubKeyParsed)
+	if err != nil {
+		return "", fmt.Errorf("crx3/id: failed to marshal public key: %w", err)
+	}
+	hash := sha256.New()
+	hash.Write(pubKeyBytes)
+	digest := hash.Sum(nil)
+
+	idx := strIDx()
+	sid := fmt.Sprintf("%x", digest[:16])
+	buf := bytes.NewBuffer(nil)
+	for _, char := range sid {
+		index := idx[char]
+		buf.WriteString(string(symbols[index]))
+	}
+
 	return buf.String(), nil
 }
 

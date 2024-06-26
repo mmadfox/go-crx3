@@ -2,6 +2,7 @@ package commands
 
 import (
 	"errors"
+	"fmt"
 	"os"
 
 	crx3 "github.com/mediabuyerbot/go-crx3"
@@ -28,7 +29,10 @@ func newZipCmd() *cobra.Command {
 			return nil
 		},
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
-			infile := args[0]
+			infile, err := toPath(args[0])
+			if err != nil {
+				return fmt.Errorf("invalid infile: %w", err)
+			}
 			if !opts.HasOutfile() {
 				opts.Outfile = infile + ".zip"
 			}
