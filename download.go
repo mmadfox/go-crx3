@@ -8,7 +8,7 @@ import (
 	"strings"
 )
 
-var chromeExtURL = "https://clients2.google.com/service/update2/crx?response=redirect&prodversion=80.0&acceptformat=crx3&x=id%3D{id}%26installsource%3Dondemand%26uc"
+var chromeExtURL = "https://clients2.google.com/service/update2/crx?response=redirect&acceptformat=crx2,crx3&prodversion=108.0.5359.125&x=id%3D{id}%26installsource%3Dondemand%26uc"
 
 // SetWebStoreURL sets the web store url to download extensions.
 func SetWebStoreURL(u string) {

@@ -2,7 +2,6 @@ package crx3
 
 import (
 	"archive/zip"
-	"bytes"
 	"crypto/rsa"
 	"encoding/json"
 	"fmt"
@@ -208,60 +207,6 @@ func (e Extension) WriteTo(w io.Writer, pk *rsa.PrivateKey) error {
 		return fmt.Errorf("crx3: failed to read zip file: %w", err)
 	}
 	return PackZipToCRX(reader, w, pk)
-}
-
-// PublicKey extracts the public key based on the extension type.
-//   - For directories, it reads the manifest file
-//     extracting the 'key' field which contains the public key.
-//   - For ZIP archives, it first attempts to parse the manifest file within the ZIP to find the public key.
-//     If the manifest is not present, or does not contain the key, it then tries to extract the public key
-//     directly from the CRX3 header.
-//   - For CRX3 files, it directly reads and parses the public key from the header if available.
-//
-// Returns the public key in byte slice format and an error if the extraction fails or if the extension type is unsupported.
-func (e Extension) PublicKey() ([]byte, []byte, error) {
-	if e.IsEmpty() {
-		return nil, nil, fmt.Errorf("%w: %s", ErrPathNotFound, e)
-	}
-	switch {
-	case e.IsDir():
-		manifest := manifestFile(e.String())
-		file, err := os.ReadFile(manifest)
-		if err != nil {
-			return nil, nil, fmt.Errorf("crx3: failed to read file %s: %w", manifest, err)
-		}
-		pubkey := parseKeyFromManifest(file)
-		if len(pubkey) == 0 {
-			return nil, nil, fmt.Errorf("crx3: failed to parse key from manifest file %s", manifest)
-		}
-		return []byte(pubkey), nil, nil
-	case e.IsZip():
-		pubkey, err := parseManifestFromZip(e.String())
-		if err != nil {
-			return nil, nil, err
-		}
-		if len(pubkey) == 0 {
-			return nil, nil, fmt.Errorf("crx3: failed to parse key from manifest file %s", e)
-		}
-		return []byte(pubkey), nil, nil
-	case e.IsCRX3():
-		pubkey, err := parseManifestFromZip(e.String())
-		if err != nil || len(pubkey) == 0 {
-			file, err := os.ReadFile(e.String())
-			if err != nil {
-				return nil, nil, fmt.Errorf("crx3: failed to read file %s: %w", e.String(), err)
-			}
-			pubk, _, err := PubkeyFrom(bytes.NewReader(file))
-			if err != nil {
-				return nil, nil, err
-			}
-			return formatPemKey(pubk), nil, nil
-		}
-		if len(pubkey) > 0 {
-			return []byte(pubkey), nil, nil
-		}
-	}
-	return nil, nil, fmt.Errorf("%w: %s", ErrUnknownFileExtension, e)
 }
 
 func manifestFile(path string) string {
