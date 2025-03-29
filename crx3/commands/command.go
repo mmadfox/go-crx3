@@ -8,7 +8,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func New() *cobra.Command {
+func New(version string) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "crx3",
 		Short: "Chrome extensions tools",
@@ -23,6 +23,7 @@ func New() *cobra.Command {
 	cmd.AddCommand(newDownloadCmd())
 	cmd.AddCommand(newIDCmd())
 	cmd.AddCommand(newPubkeyCmd())
+	cmd.AddCommand(newVersionCmd(version))
 
 	return cmd
 }
