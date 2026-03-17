@@ -1,10 +1,13 @@
 package commands
 
 import (
+	"context"
 	"fmt"
+	"io"
 	"log"
 	"os"
 
+	"github.com/mediabuyerbot/go-crx3/mcp"
 	"github.com/spf13/cobra"
 )
 
@@ -13,10 +16,10 @@ type mcpOpts struct {
 	ShowTools     bool
 	Logfile       string
 	DisabledTools []string
-	// TODO: setup workdir
+	WorkDir       string
 }
 
-func newMCPCmd() *cobra.Command {
+func newMCPCmd(version string) *cobra.Command {
 	var opts mcpOpts
 	cmd := &cobra.Command{
 		Use:   "mcp [mcp-flags]",
@@ -36,6 +39,7 @@ $ crx3 mcp  # starts over stdio`,
 			}
 
 			// set up logging if we have a logfile
+			var logWriter io.Writer
 			if len(opts.Logfile) > 0 {
 				f, err := os.Create(opts.Logfile)
 				if err != nil {
@@ -43,15 +47,25 @@ $ crx3 mcp  # starts over stdio`,
 				}
 				log.SetOutput(f)
 				defer f.Close()
+				logWriter = log.Writer()
 			}
 
-			return nil
+			ctx, cancel := context.WithCancel(cmd.Context())
+			defer cancel()
+
+			// TODO: http, sse
+			return mcp.ServeStdIO(ctx, mcp.Options{
+				Version: version,
+				Logger:  logWriter,
+				WorkDir: opts.WorkDir,
+			})
 		},
 	}
 
-	cmd.Flags().StringVarP(&opts.Address, "listen", "l", "", "the address on which to run the mcp server")
-	cmd.Flags().StringVarP(&opts.Logfile, "logfile", "f", "", "filename to log to; if unset, logs to stderr")
-	cmd.Flags().BoolVarP(&opts.ShowTools, "tools.show", "s", false, "if set, print tools with instruction and exit")
-	cmd.Flags().StringSliceVarP(&opts.DisabledTools, "tools.disabled", "d", []string{}, "comma-separated list of tool names to disable when running the MCP server")
+	cmd.Flags().StringVarP(&opts.Address, "listen", "l", "", "The address on which to run the mcp server")
+	cmd.Flags().StringVarP(&opts.Logfile, "logfile", "f", "", "Filename to log to; if unset, logs to stderr")
+	cmd.Flags().BoolVarP(&opts.ShowTools, "tools.show", "s", false, "If set, print tools with instruction and exit")
+	cmd.Flags().StringSliceVarP(&opts.DisabledTools, "tools.disabled", "d", []string{}, "Comma-separated list of tool names to disable when running the MCP server")
+	cmd.Flags().StringVarP(&opts.WorkDir, "workdir", "w", "", "The working directory in which the server will run. Defaults to the current directory")
 	return cmd
 }
