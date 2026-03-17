@@ -10,15 +10,17 @@ import (
 	sdkmcp "github.com/modelcontextprotocol/go-sdk/mcp"
 )
 
+//go:embed search.md
+var searchDescription string
+
 type searchParams struct {
 	Name string `json:"name" jsonschema:"the search query to use for matching chrome extension"`
 }
 
 func (h *handler) makeSearchTool() {
 	sdkmcp.AddTool(h.mcpServer, &sdkmcp.Tool{
-		Name: "crx3_search_chrome_extension",
-		Description: `#crx3_search_chrome_extension
-search for Chrome extensions using DuckDuckGo and extract relevant results`,
+		Name:        "crx3_search_chrome_extension",
+		Description: searchDescription,
 	}, h.searchHandler)
 }
 
@@ -37,14 +39,17 @@ func (h *handler) searchHandler(ctx context.Context, _ *sdkmcp.CallToolRequest, 
 	}
 
 	var sb strings.Builder
-	sb.WriteString("# Found crome extensions:\n")
+	sb.WriteString("## Found chrome extensions:\n")
 	for _, etension := range results {
 		sb.WriteString("Name: ")
 		sb.WriteString(etension.Name)
 		sb.WriteString("\n")
 
-		sb.WriteString("URL: ")
+		sb.WriteString("URL: [")
+		sb.WriteString(etension.Name)
+		sb.WriteString("](")
 		sb.WriteString(etension.URL)
+		sb.WriteString(")\n")
 		sb.WriteString("\n")
 
 		sb.WriteString("ExtensionID: ")
@@ -52,6 +57,7 @@ func (h *handler) searchHandler(ctx context.Context, _ *sdkmcp.CallToolRequest, 
 		sb.WriteString("\n")
 
 		sb.WriteString("---")
+		sb.WriteString("\n")
 	}
 
 	return textResult(sb.String()), nil, nil

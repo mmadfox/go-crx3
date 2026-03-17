@@ -2,7 +2,6 @@ package crx3
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"io"
 	"math/rand/v2"
@@ -12,10 +11,6 @@ import (
 	"time"
 
 	"golang.org/x/net/html"
-)
-
-var (
-	ErrExtensionNotFound = errors.New("extension not found")
 )
 
 type SearchResult struct {
