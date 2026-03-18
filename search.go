@@ -65,41 +65,47 @@ func parseLiteSearchResults(htmlContent []byte) ([]SearchResult, error) {
 	}
 
 	const targetDomain = "chromewebstore.google.com"
-
 	var results []SearchResult
-	var currentResult *SearchResult
 
 	var traverse func(*html.Node)
 	traverse = func(n *html.Node) {
-		if n.Type == html.ElementNode {
-			if n.Data == "a" && hasClass(n, "result-link") {
+		if n.Type == html.ElementNode && n.Data == "a" {
+			if hasClass(n, "result-link") {
 				link := getAttr(n, "href")
 				if !strings.Contains(link, targetDomain) {
 					return
 				}
-				if currentResult != nil && currentResult.URL != "" {
-					results = append(results, *currentResult)
-				}
+
 				name := getTextContent(n)
 				name = strings.TrimSuffix(name, " - Chrome Web Store")
-				currentResult = &SearchResult{
+				name = strings.TrimSpace(name)
+
+				url := cleanDuckDuckGoURL(link)
+				if url == "" || name == "" {
+					return
+				}
+
+				result := SearchResult{
 					Name: name,
-					URL:  cleanDuckDuckGoURL(link),
+					URL:  url,
+				}
+
+				results = append(results, result)
+
+				if len(results) >= 10 {
+					return
 				}
 			}
 		}
-		for c := n.FirstChild; c != nil; c = c.NextSibling {
-			traverse(c)
+		if len(results) < 10 {
+			for c := n.FirstChild; c != nil; c = c.NextSibling {
+				traverse(c)
+			}
 		}
 	}
 
 	traverse(doc)
 
-	if currentResult != nil && currentResult.URL != "" {
-		results = append(results, *currentResult)
-	}
-
-	// Extract extension IDs
 	for i := range results {
 		if id := extractExtensionID(results[i].URL); id != "" {
 			results[i].ExtensionID = id
@@ -157,17 +163,33 @@ func cleanDuckDuckGoURL(rawURL string) string {
 	return rawURL
 }
 
-func extractExtensionID(url string) string {
-	// Extract extension ID from URLs like:
-	// https://chromewebstore.google.com/detail/ad-block/gighmmpiobklfepjocnamgkkbiglidom?hl=en
-	// or https://chromewebstore.google.com/webstore/detail/ad-block/gighmmpiobklfepjocnamgkkbiglidom
-	parts := strings.Split(strings.TrimPrefix(url, "https://"), "/")
-	if len(parts) >= 4 {
-		if (parts[1] == "detail" || parts[1] == "webstore/detail") && len(parts[3]) == 32 {
-			return parts[3]
+func extractExtensionID(tgt string) string {
+	u, err := url.Parse(tgt)
+	if err != nil {
+		return ""
+	}
+
+	parts := strings.Split(strings.Trim(u.Path, "/"), "/")
+	if len(parts) < 3 {
+		return ""
+	}
+
+	for i, part := range parts {
+		if part == "detail" && i+2 < len(parts) {
+			candidate := parts[i+2]
+			if isValidExtensionID(candidate) {
+				return candidate
+			}
 		}
 	}
+
 	return ""
+}
+
+func isValidExtensionID(s string) bool {
+	return len(s) == 32 && strings.IndexFunc(s, func(r rune) bool {
+		return !((r >= 'a' && r <= 'z') || (r >= '0' && r <= '9'))
+	}) == -1
 }
 
 func randomizedHeaders(req *http.Request) {

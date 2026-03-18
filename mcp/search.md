@@ -1,4 +1,4 @@
-# crx3_search_chrome_extension
+# crx3_search
 
 Searches for Chrome extensions by name using DuckDuckGo and returns structured information about matching extensions.
 
@@ -13,15 +13,28 @@ Input:
 
 <result>
 Output:
+{{ if not .DisabledMarkdown }}
 - A markdown-formatted list of found extensions, including:
   - Name
   - Clickable link to the extension page
   - Extension ID (useful for direct installation or further processing)
+{{ end }}
+StructuredOutput:
+```json
+# Example:
+[
+    {
+       "name": "Extension name",
+       "url": "Extension url",
+       "extensionId": "Extension id"
+    }
+]
+```
 </result>
 
-<examples>
+<use_cases>
 Example use cases:
 - "Find the Chrome extension called 'React Developer Tools'"
 - "Search for ad blockers on Chrome"
 - "Get the Extension ID for 'uBlock Origin'"
-</examples>
+</use_cases>

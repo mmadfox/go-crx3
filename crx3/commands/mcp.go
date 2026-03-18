@@ -12,11 +12,12 @@ import (
 )
 
 type mcpOpts struct {
-	Address       string
-	ShowTools     bool
-	Logfile       string
-	DisabledTools []string
-	WorkDir       string
+	Address          string
+	ShowTools        bool
+	Logfile          string
+	DisabledTools    []string
+	WorkDir          string
+	DisabledMarkdown bool
 }
 
 func newMCPCmd(version string) *cobra.Command {
@@ -55,9 +56,11 @@ $ crx3 mcp  # starts over stdio`,
 
 			// TODO: http, sse
 			return mcp.ServeStdIO(ctx, mcp.Options{
-				Version: version,
-				Logger:  logWriter,
-				WorkDir: opts.WorkDir,
+				Version:          version,
+				Logger:           logWriter,
+				WorkDir:          opts.WorkDir,
+				DisabledMarkdown: opts.DisabledMarkdown,
+				DisabledTools:    opts.DisabledTools,
 			})
 		},
 	}
@@ -66,6 +69,8 @@ $ crx3 mcp  # starts over stdio`,
 	cmd.Flags().StringVarP(&opts.Logfile, "logfile", "f", "", "Filename to log to; if unset, logs to stderr")
 	cmd.Flags().BoolVarP(&opts.ShowTools, "tools.show", "s", false, "If set, print tools with instruction and exit")
 	cmd.Flags().StringSliceVarP(&opts.DisabledTools, "tools.disabled", "d", []string{}, "Comma-separated list of tool names to disable when running the MCP server")
+	cmd.Flags().BoolVarP(&opts.DisabledMarkdown, "tools.disabledMarkdownOutput", "m", false, "If set, disables human-readable text output (Markdown) in tool responses. Only structured data (JSON) will be returned. Intended for automated clients that consume structured content directly")
 	cmd.Flags().StringVarP(&opts.WorkDir, "workdir", "w", "", "The working directory in which the server will run. Defaults to the current directory")
+
 	return cmd
 }
