@@ -5,9 +5,9 @@ import (
 	"context"
 	_ "embed"
 	"fmt"
+	"html/template"
 	"strconv"
 	"strings"
-	"text/template"
 
 	"github.com/mediabuyerbot/go-crx3"
 	sdkmcp "github.com/modelcontextprotocol/go-sdk/mcp"
@@ -40,6 +40,10 @@ type searchParams struct {
 	Name string `json:"name" jsonschema:"required,the search query to find Chrome extensions by name"`
 }
 
+type searchResult struct {
+	Results []crx3.SearchResult `json:"results"`
+}
+
 func (h *handler) searchHandler(ctx context.Context, _ *sdkmcp.CallToolRequest, params searchParams) (*sdkmcp.CallToolResult, any, error) {
 	if len(params.Name) == 0 {
 		return nil, nil, fmt.Errorf("empty query")
@@ -55,7 +59,7 @@ func (h *handler) searchHandler(ctx context.Context, _ *sdkmcp.CallToolRequest, 
 	}
 
 	resp := &sdkmcp.CallToolResult{
-		StructuredContent: searchOutput{
+		StructuredContent: searchResult{
 			Results: results,
 		},
 	}

@@ -5,7 +5,6 @@ import (
 	_ "embed"
 	"io"
 
-	"github.com/mediabuyerbot/go-crx3"
 	sdkmcp "github.com/modelcontextprotocol/go-sdk/mcp"
 )
 
@@ -15,14 +14,44 @@ const (
 	workspaceToolName = "crx3_workspace"
 )
 
-var allTools = []string{
-	searchToolName,
-	workspaceToolName,
-	downloadToolName,
+type ToolInfo struct {
+	Name        string `json:"name"`
+	Title       string `json:"title"`
+	Description string `json:"description"`
+}
+
+func MakeAllTools(opts *Options) []ToolInfo {
+	tools := make([]ToolInfo, 0)
+	isNotDisabledTool := func(name string) bool {
+		for _, t := range opts.DisabledTools {
+			if t == name {
+				return false
+			}
+		}
+		return true
+	}
+
+	if isNotDisabledTool(searchToolName) {
+		tools = append(tools, ToolInfo{
+			Name:        searchToolName,
+			Title:       searchTitle,
+			Description: makeSearchDescription(opts.DisabledMarkdown),
+		})
+	}
+
+	if isNotDisabledTool(workspaceToolName) {
+		tools = append(tools, ToolInfo{
+			Name:        workspaceToolName,
+			Title:       workspaceTitle,
+			Description: workspaceDescription,
+		})
+	}
+
+	return tools
 }
 
 //go:embed instruction_crx3.md
-var instruction string
+var Instruction string
 
 type Options struct {
 	Version          string
@@ -30,10 +59,6 @@ type Options struct {
 	WorkDir          string
 	DisabledTools    []string
 	DisabledMarkdown bool
-}
-
-type searchOutput struct {
-	Results []crx3.SearchResult `json:"results"`
 }
 
 type handler struct {
@@ -46,6 +71,7 @@ func ServeHTTP(ctx context.Context, addr string) error {
 
 func ServeStdIO(
 	ctx context.Context,
+	tools []ToolInfo,
 	opts Options,
 ) error {
 	// TODO:
@@ -60,7 +86,7 @@ func ServeStdIO(
 	// }
 
 	srvOpts := &sdkmcp.ServerOptions{
-		Instructions: instruction,
+		Instructions: Instruction,
 	}
 	mcpServer := sdkmcp.NewServer(&sdkmcp.Implementation{
 		Name:    "crx3",
@@ -68,7 +94,7 @@ func ServeStdIO(
 	}, srvOpts)
 
 	h := &handler{opts: &opts}
-	makeTools(mcpServer, h, &opts)
+	makeTools(mcpServer, h, tools)
 
 	return mcpServer.Run(ctx, &sdkmcp.StdioTransport{})
 }
@@ -79,33 +105,23 @@ func textResult(text string) *sdkmcp.CallToolResult {
 	}
 }
 
-func makeTools(mcpServer *sdkmcp.Server, h *handler, opts *Options) {
-	isDisabledTools := func(name string) bool {
-		for _, t := range opts.DisabledTools {
-			if t == name {
-				return true
-			}
-		}
-		return false
-	}
-	for _, toolName := range allTools {
-		if isDisabledTools(toolName) {
-			continue
-		}
-		switch toolName {
+func makeTools(mcpServer *sdkmcp.Server, h *handler, tools []ToolInfo) {
+	for _, tool := range tools {
+		switch tool.Name {
 		case workspaceToolName:
 			sdkmcp.AddTool(mcpServer, &sdkmcp.Tool{
-				Title:       workspaceTitle,
-				Name:        workspaceToolName,
-				Description: workspaceDescription,
+				Title:       tool.Title,
+				Name:        tool.Name,
+				Description: tool.Description,
 			}, h.workspaceHandler)
 		case searchToolName:
 			sdkmcp.AddTool(mcpServer, &sdkmcp.Tool{
-				Title:       searchTitle,
-				Name:        searchToolName,
-				Description: makeSearchDescription(opts.DisabledMarkdown),
+				Title:       tool.Title,
+				Name:        tool.Name,
+				Description: tool.Description,
 			}, h.searchHandler)
 		case downloadToolName:
+
 		}
 	}
 }
