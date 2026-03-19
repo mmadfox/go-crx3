@@ -18,7 +18,6 @@ const (
 	tzip             = "zip"
 	defaultLayout    = "2006-01-02 15:04"
 	unknownName      = "unknown"
-	defaultMaxDepth  = 3
 )
 
 var extensionNameRe = regexp.MustCompile(`^([a-zA-Z0-9_]+_)?([a-p]{32})(?:\.(crx|zip))?$`)
@@ -130,7 +129,7 @@ func Scan(rootPath string, opts ...ScanOption) iter.Seq2[*ExtensionInfo, error] 
 					return nil
 				}
 
-				if filter.maxDepth >= 0 && depth > filter.maxDepth {
+				if filter.maxDepth > 0 && depth > filter.maxDepth {
 					if info.IsDir() {
 						return filepath.SkipDir
 					}

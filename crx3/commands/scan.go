@@ -21,15 +21,8 @@ func newScanCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "scan [path]",
 		Short: "Scan a directory for Chrome extensions",
-		Long: `Scan recursively scans a directory for Chrome extensions in CRX, ZIP, or unpacked directory formats.
-
-The path to scan can be provided as a positional argument or via the --root flag.
-If neither is provided, the current directory (.) is used.
-Supports tilde expansion (~ or ~/path).
-
-Use --depth to limit directory traversal depth (e.g. 0 = only root, 1 = root and subdirs).
-Use --limit to stop after finding N extensions.`,
-		Args: cobra.MaximumNArgs(1),
+		Long:  `Scan recursively scans a directory for Chrome extensions in CRX, ZIP, or unpacked directory formats`,
+		Args:  cobra.MaximumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			path := rootPath
 			if len(args) > 0 {
@@ -88,8 +81,8 @@ Use --limit to stop after finding N extensions.`,
 	}
 
 	cmd.Flags().StringVar(&nameFilters, "filter", "", "Filter extensions by (partial) names, comma-separated")
-	cmd.Flags().IntVar(&maxDepth, "depth", 1, "Maximum directory depth to scan (0 = only root, -1 = unlimited)")
-	cmd.Flags().IntVar(&maxLimit, "limit", 10, "Maximum number of extensions to find (0 = unlimited)")
+	cmd.Flags().IntVar(&maxDepth, "depth", 5, "Maximum directory depth to scan (0 = only root, -1 = unlimited)")
+	cmd.Flags().IntVar(&maxLimit, "limit", 15, "Maximum number of extensions to find (0 = unlimited)")
 
 	return cmd
 }
