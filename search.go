@@ -13,6 +13,8 @@ import (
 	"golang.org/x/net/html"
 )
 
+const chromewebstoreHost = "chromewebstore.google.com"
+
 type SearchResult struct {
 	Name        string `json:"name"`
 	URL         string `json:"url"`
@@ -64,7 +66,6 @@ func parseLiteSearchResults(htmlContent []byte) ([]SearchResult, error) {
 		return nil, fmt.Errorf("failed to parse HTML: %w", err)
 	}
 
-	const targetDomain = "chromewebstore.google.com"
 	var results []SearchResult
 
 	var traverse func(*html.Node)
@@ -72,7 +73,7 @@ func parseLiteSearchResults(htmlContent []byte) ([]SearchResult, error) {
 		if n.Type == html.ElementNode && n.Data == "a" {
 			if hasClass(n, "result-link") {
 				link := getAttr(n, "href")
-				if !strings.Contains(link, targetDomain) {
+				if !strings.Contains(link, chromewebstoreHost) {
 					return
 				}
 
@@ -192,7 +193,7 @@ func ExtractExtensionNameFromURL(rawURL string) (string, bool) {
 		return "", false
 	}
 
-	if u.Host != "chromewebstore.google.com" {
+	if u.Host != chromewebstoreHost {
 		return "", false
 	}
 
@@ -219,7 +220,7 @@ func IsValidChromeWebStoreURL(rawURL string) bool {
 	if u.Scheme != "https" {
 		return false
 	}
-	if u.Host != "chromewebstore.google.com" {
+	if u.Host != chromewebstoreHost {
 		return false
 	}
 

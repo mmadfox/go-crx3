@@ -20,6 +20,23 @@ These instructions describe how to efficiently work with the CRX3 tools set usin
 - **Input:** No parameters required.
 - **Output:** Absolute path to the workspace root.
 
+### `crx3_unpack`
+- **When to use:** User wants to extract/inspect the contents of a .crx file.
+- **Input handling:**
+  1. If filepath is known from context → Call `crx3_unpack` directly.
+  2. If filepath is unknown → First call `crx3_scan` to locate the file.
+
+### `crx3_scan`
+- **When to use:**
+  - User references a downloaded extension but filepath is unknown from context
+  - User wants to browse, filter, or manage their extension library
+  - Need to locate a .crx file before unpacking or re-downloading
+- **Input handling:**
+  - `limit`: Use to restrict results (e.g., `limit: 5` for recent items). Omit or use `0` for all.
+  - `filter`: Array of keywords for name-based filtering. Case-insensitive, partial match, OR logic.
+- **Result:** List of `ExtensionInfo` objects with `name`, `path`, `type`, `size`, `modified`.
+
+
 <critical_rules>
 1. **Parameter mapping:** Pass extensionId or URL to the `url` parameter of `crx3_download`.
    - Accepts: 32-character ID OR full Chrome Web Store URL.

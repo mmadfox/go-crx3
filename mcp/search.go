@@ -1,11 +1,9 @@
 package mcp
 
 import (
-	"bytes"
 	"context"
 	_ "embed"
 	"fmt"
-	"html/template"
 	"strconv"
 	"strings"
 
@@ -18,23 +16,6 @@ var (
 	searchDescription string
 	searchTitle       = "Search for Chrome extensions"
 )
-
-func makeSearchDescription(disabledMarkdown bool) string {
-	tmpl, err := template.New("search").Parse(searchDescription)
-	if err != nil {
-		panic(err)
-	}
-	params := struct {
-		DisabledMarkdown bool
-	}{
-		DisabledMarkdown: disabledMarkdown,
-	}
-	var buf bytes.Buffer
-	if err := tmpl.Execute(&buf, params); err != nil {
-		panic(err)
-	}
-	return strings.TrimSpace(buf.String())
-}
 
 type searchParams struct {
 	Name string `json:"name" jsonschema:"required,the search query to find Chrome extensions by name"`
