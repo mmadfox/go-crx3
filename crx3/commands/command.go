@@ -26,6 +26,7 @@ func New(version string) *cobra.Command {
 	cmd.AddCommand(newVersionCmd(version))
 	cmd.AddCommand(newMCPCmd(version))
 	cmd.AddCommand(newSearchCmd())
+	cmd.AddCommand(newScanCmd())
 
 	return cmd
 }

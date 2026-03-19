@@ -11,5 +11,5 @@ import (
 var base64Description string
 
 func (h *handler) base64Handler(ctx context.Context, _ *sdkmcp.CallToolRequest, _ any) (*sdkmcp.CallToolResult, any, error) {
-	return textResult("somebase64"), nil, nil
+	return nil, nil, nil
 }

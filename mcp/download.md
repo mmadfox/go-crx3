@@ -1,25 +1,44 @@
-# Download Chrome Extension
+# crx3_download
 
-Downloads a Chrome extension from the Chrome Web Store by extension ID or URL.
+Downloads Chrome extensions as .crx files using an Extension ID or Chrome Web Store URL.
 
-## Parameters
+<usage>
+Use this tool when the user wants to download a Chrome extension package (.crx file). The tool accepts either a direct Extension ID or a Chrome Web Store URL, downloads the extension, and saves it to the specified or default location.
+</usage>
 
-- `idOrUrl`: The extension ID (e.g. "gighmmpiobklfepjocnamgkkbiglidom") or full Chrome Web Store URL (e.g. "https://chromewebstore.google.com/detail/adblock/gighmmpiobklfepjocnamgkkbiglidom")
-- `outfile`: (Optional) Path where to save the downloaded .crx file. If not specified, saves to current directory as "extension.crx"
-- `unpack`: (Optional) Whether to unpack the extension after downloading. Defaults to true.
+<params>
+Input:
+- url (string, required): The extensionId or Chrome Web Store URL to download.
+  - Accepts formats: `aapbdbdomjkkjkaonfhkkikfgjllcleb` or `https://chrome.google.com/webstore/detail/.../aapbdbdomjkkjkaonfhkkikfgjllcleb`
+- path (string, optional): Path to save the downloaded .crx file. If not provided, uses default download location.
+</params>
 
-## Returns
-
-Returns a message indicating the download location and status. If unpack is true, also indicates the unpack location.
-
-## Example
-
+<result>
+Output:
+{{ if not .DisabledMarkdown }}
+- A confirmation message indicating:
+  - Download status (success/failure)
+  - Full filepath to the downloaded .crx file
+{{ end }}
+StructuredOutput:
 ```json
+# Example (Success):
 {
-  "idOrUrl": "https://chromewebstore.google.com/detail/adblock/gighmmpiobklfepjocnamgkkbiglidom",
-  "outfile": "/tmp/adblock.crx",
-  "unpack": true
+   "success": true,
+   "filepath": "/path/to/extension.crx"
 }
-```
 
-This would download the Adblock extension to /tmp/adblock.crx and unpack it to /tmp/adblock/.
+# Example (Failure):
+{
+   "success": false,
+   "filepath": ""
+}
+</result>
+
+<use_cases>
+Example use cases:
+- "Download the extension with ID 'aapbdbdomjkkjkaonfhkkikfgjllcleb'"
+- "Save the uBlock Origin extension to ./downloads/"
+- "Download the extension from this URL: https://chrome.google.com/webstore/detail/..."
+- "Get the .crx file for the extension I just searched for"
+</use_cases>

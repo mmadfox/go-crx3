@@ -107,7 +107,7 @@ func parseLiteSearchResults(htmlContent []byte) ([]SearchResult, error) {
 	traverse(doc)
 
 	for i := range results {
-		if id := extractExtensionID(results[i].URL); id != "" {
+		if id := ExtractExtensionID(results[i].URL); id != "" {
 			results[i].ExtensionID = id
 		}
 	}
@@ -163,7 +163,7 @@ func cleanDuckDuckGoURL(rawURL string) string {
 	return rawURL
 }
 
-func extractExtensionID(tgt string) string {
+func ExtractExtensionID(tgt string) string {
 	u, err := url.Parse(tgt)
 	if err != nil {
 		return ""
@@ -177,7 +177,7 @@ func extractExtensionID(tgt string) string {
 	for i, part := range parts {
 		if part == "detail" && i+2 < len(parts) {
 			candidate := parts[i+2]
-			if isValidExtensionID(candidate) {
+			if IsValidExtensionID(candidate) {
 				return candidate
 			}
 		}
@@ -186,7 +186,54 @@ func extractExtensionID(tgt string) string {
 	return ""
 }
 
-func isValidExtensionID(s string) bool {
+func ExtractExtensionNameFromURL(rawURL string) (string, bool) {
+	u, err := url.Parse(rawURL)
+	if err != nil {
+		return "", false
+	}
+
+	if u.Host != "chromewebstore.google.com" {
+		return "", false
+	}
+
+	path := strings.Trim(u.Path, "/")
+	parts := strings.Split(path, "/")
+	if len(parts) < 3 || parts[0] != "detail" {
+		return "", false
+	}
+
+	name := parts[1]
+	if len(name) == 0 || len(name) == 32 && IsValidExtensionID(name) {
+		return "", false
+	}
+
+	return name, true
+}
+
+func IsValidChromeWebStoreURL(rawURL string) bool {
+	u, err := url.Parse(rawURL)
+	if err != nil {
+		return false
+	}
+
+	if u.Scheme != "https" {
+		return false
+	}
+	if u.Host != "chromewebstore.google.com" {
+		return false
+	}
+
+	path := strings.Trim(u.Path, "/")
+	parts := strings.Split(path, "/")
+	if len(parts) < 3 || parts[0] != "detail" {
+		return false
+	}
+
+	extensionID := parts[2]
+	return IsValidExtensionID(extensionID)
+}
+
+func IsValidExtensionID(s string) bool {
 	return len(s) == 32 && strings.IndexFunc(s, func(r rune) bool {
 		return !((r >= 'a' && r <= 'z') || (r >= '0' && r <= '9'))
 	}) == -1

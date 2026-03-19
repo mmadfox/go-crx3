@@ -1,10 +1,11 @@
 package mcp
 
 import (
+	"cmp"
 	"context"
 	_ "embed"
 	"fmt"
-	"net/url"
+	"os"
 	"path"
 	"strings"
 
@@ -12,84 +13,103 @@ import (
 	sdkmcp "github.com/modelcontextprotocol/go-sdk/mcp"
 )
 
-//go:embed download.md
-var downloadDescription string
+var (
+	//go:embed download.md
+	downloadDescription string
+	downloadTitle       = "Download an Chrome extension"
+)
 
 type downloadParams struct {
-	IdOrUrl string `json:"idOrUrl" jsonschema:"the extension ID or Chrome Web Store URL to download"`
-	Outfile string `json:"outfile" jsonschema:"path to save the downloaded .crx file, optional"`
-	Unpack  bool   `json:"unpack" jsonschema:"whether to unpack the extension after downloading, defaults to true"`
+	Target string `json:"url" jsonschema:"required, the extensionId or Chrome Web Store URL to download"`
+	Path   string `json:"path,omitempty" jsonschema:"optional, path to save the downloaded .crx file"`
+	Name   string `json:"name,omitempty" jsonschema:"optional, name of the downloaded .crx file"`
 }
 
-func downloadHandler(opts *Options) sdkmcp.ToolHandlerFor[downloadParams, any] {
-	return func(ctx context.Context, _ *sdkmcp.CallToolRequest, params downloadParams) (*sdkmcp.CallToolResult, any, error) {
-		if len(params.IdOrUrl) == 0 {
-			return nil, nil, fmt.Errorf("extension ID or URL is required")
-		}
+type downloadResult struct {
+	Success  bool   `json:"success" jsonschema:"required, whether the download was successful"`
+	Filepath string `json:"filepath" jsonschema:"required, the filepath to the downloaded .crx file"`
+}
 
-		// Extract extension ID if URL is provided
-		extensionID := params.IdOrUrl
-		if strings.HasPrefix(extensionID, "http") {
-			extensionID = extractExtensionID(extensionID)
-		}
+func (h *handler) downloadHandler(ctx context.Context, _ *sdkmcp.CallToolRequest, params downloadParams) (*sdkmcp.CallToolResult, any, error) {
+	if len(params.Target) == 0 {
+		return nil, nil, fmt.Errorf("extension ID or URL is required")
+	}
 
-		// Set default output file if not specified
-		outfile := params.Outfile
-		if len(outfile) == 0 {
-			pwd := opts.WorkDir
-			if len(pwd) == 0 {
-				pwd = "."
-			}
-			outfile = path.Join(pwd, "extension.crx")
-		}
+	if len(params.Name) > 0 && strings.Contains(params.Name, ".") {
+		return nil, nil, fmt.Errorf("name must not contain dots or file extensions; provide a clean name without .crx, .zip, etc.")
+	}
 
-		// Ensure .crx extension
-		if !strings.HasSuffix(outfile, ".crx") {
-			outfile = outfile + ".crx"
-		}
+	var (
+		extensionID   string
+		extensionName string
+	)
 
-		// Download the extension
-		if err := crx3.DownloadFromWebStore(extensionID, outfile); err != nil {
-			return nil, nil, fmt.Errorf("failed to download extension: %w", err)
+	if strings.HasPrefix(params.Target, "http") {
+		if !crx3.IsValidChromeWebStoreURL(params.Target) {
+			return nil, nil, fmt.Errorf("invalid Chrome Web Store URL")
 		}
+		extensionID = crx3.ExtractExtensionID(params.Target)
+		extensionName, _ = crx3.ExtractExtensionNameFromURL(params.Target)
+	} else {
+		extensionID = params.Target
+	}
 
-		// Prepare result message
+	if len(extensionID) == 0 {
+		return nil, nil, fmt.Errorf("invalid extension ID or URL")
+	}
+	if !crx3.IsValidExtensionID(extensionID) {
+		return nil, nil, fmt.Errorf("invalid extension ID")
+	}
+
+	extensionName = cmp.Or(params.Name, extensionName)
+	extensionName = makeName(extensionName, extensionID)
+
+	if len(extensionID) == 0 {
+		return nil, nil, fmt.Errorf("invalid extension ID or URL")
+	}
+
+	extPath, err := h.opts.joinPath(params.Path)
+	if err != nil {
+		return nil, nil, fmt.Errorf("failed to join path: %w", err)
+	}
+	if err := os.MkdirAll(extPath, 0755); err != nil {
+		return nil, nil, fmt.Errorf("failed to create directory: %w", err)
+	}
+
+	outfile := path.Join(extPath, extensionName)
+	if err := crx3.DownloadFromWebStore(extensionID, outfile); err != nil {
+		return nil, nil, fmt.Errorf("failed to download extension: %w", err)
+	}
+
+	resp := &sdkmcp.CallToolResult{
+		StructuredContent: downloadResult{
+			Success:  true,
+			Filepath: outfile,
+		},
+	}
+
+	if !h.opts.DisabledMarkdown {
 		var sb strings.Builder
 		sb.WriteString("Successfully downloaded extension \"")
 		sb.WriteString(extensionID)
 		sb.WriteString("\" to \"")
 		sb.WriteString(outfile)
 		sb.WriteString("\"\n")
-
-		// Unpack if requested
-		unpack := params.Unpack
-		if !unpack {
-			// Default to true if not specified
-			unpack = true
+		resp.Content = []sdkmcp.Content{
+			&sdkmcp.TextContent{Text: sb.String()},
 		}
-
-		if unpack {
-			if err := crx3.Unpack(outfile); err != nil {
-				return nil, nil, fmt.Errorf("failed to unpack extension: %w", err)
-			}
-			dir := strings.TrimSuffix(outfile, ".crx")
-			sb.WriteString("Unpacked extension to \"")
-			sb.WriteString(dir)
-			sb.WriteString("\"\n")
-		}
-
-		return textResult(sb.String()), nil, nil
 	}
+
+	return resp, nil, nil
 }
 
-func extractExtensionID(rawUrl string) string {
-	u, err := url.Parse(rawUrl)
-	if err != nil {
-		return ""
+func makeName(name string, extensionID string) string {
+	if len(name) == 0 {
+		return fmt.Sprintf("%s.crx", extensionID)
 	}
-	urlParts := strings.Split(u.Path, "/")
-	if len(urlParts) == 0 {
-		return ""
-	}
-	return urlParts[len(urlParts)-1]
+	name = strings.ToLower(name)
+	name = strings.TrimSpace(name)
+	name = strings.ReplaceAll(name, "-", "_")
+	name = strings.ReplaceAll(name, " ", "_")
+	return fmt.Sprintf("%s_%s.crx", name, extensionID)
 }

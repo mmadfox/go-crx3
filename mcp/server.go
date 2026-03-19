@@ -47,10 +47,18 @@ func MakeAllTools(opts *Options) []ToolInfo {
 		})
 	}
 
+	if isNotDisabledTool(downloadToolName) {
+		tools = append(tools, ToolInfo{
+			Name:        downloadToolName,
+			Title:       downloadTitle,
+			Description: downloadDescription,
+		})
+	}
+
 	return tools
 }
 
-//go:embed instruction_crx3.md
+//go:embed instruction.md
 var Instruction string
 
 type Options struct {
@@ -99,12 +107,6 @@ func ServeStdIO(
 	return mcpServer.Run(ctx, &sdkmcp.StdioTransport{})
 }
 
-func textResult(text string) *sdkmcp.CallToolResult {
-	return &sdkmcp.CallToolResult{
-		Content: []sdkmcp.Content{&sdkmcp.TextContent{Text: text}},
-	}
-}
-
 func makeTools(mcpServer *sdkmcp.Server, h *handler, tools []ToolInfo) {
 	for _, tool := range tools {
 		switch tool.Name {
@@ -113,15 +115,27 @@ func makeTools(mcpServer *sdkmcp.Server, h *handler, tools []ToolInfo) {
 				Title:       tool.Title,
 				Name:        tool.Name,
 				Description: tool.Description,
+				Annotations: &sdkmcp.ToolAnnotations{
+					IdempotentHint: true,
+					ReadOnlyHint:   true,
+				},
 			}, h.workspaceHandler)
 		case searchToolName:
 			sdkmcp.AddTool(mcpServer, &sdkmcp.Tool{
 				Title:       tool.Title,
 				Name:        tool.Name,
 				Description: tool.Description,
+				Annotations: &sdkmcp.ToolAnnotations{
+					IdempotentHint: true,
+					ReadOnlyHint:   true,
+				},
 			}, h.searchHandler)
 		case downloadToolName:
-
+			sdkmcp.AddTool(mcpServer, &sdkmcp.Tool{
+				Title:       tool.Title,
+				Name:        tool.Name,
+				Description: tool.Description,
+			}, h.downloadHandler)
 		}
 	}
 }

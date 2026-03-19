@@ -3,6 +3,7 @@ package crx3
 import (
 	"bytes"
 	"encoding/binary"
+	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
@@ -11,6 +12,8 @@ import (
 
 	"google.golang.org/protobuf/proto"
 )
+
+const extensionID = "crx3.id"
 
 // UnpackTo unpacks a CRX (Chrome Extension) file specified by 'filename' to the directory 'dirname'.
 // If 'dirname' does not exist, it creates the directory before unpacking.
@@ -80,5 +83,22 @@ func unpack(filename string, dirname string) error {
 		unpacked = strings.TrimSuffix(filename, crxExt)
 	}
 
-	return Unzip(reader, size, unpacked)
+	if err := Unzip(reader, size, unpacked); err != nil {
+		return err
+	}
+
+	// write extension id
+	extensionFilename := filepath.Join(unpacked, extensionID)
+	return os.WriteFile(extensionFilename, []byte(makeExtensionID(signedData.CrxId)), 0755)
+}
+
+func makeExtensionID(id []byte) []byte {
+	idx := strIDx()
+	sid := fmt.Sprintf("%x", id[:16])
+	buf := bytes.NewBuffer(nil)
+	for _, char := range sid {
+		index := idx[char]
+		buf.WriteString(string(symbols[index]))
+	}
+	return buf.Bytes()
 }
