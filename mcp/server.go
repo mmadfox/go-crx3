@@ -12,11 +12,11 @@ import (
 )
 
 const (
-	searchToolName    = "crx3_search"
-	downloadToolName  = "crx3_download"
-	workspaceToolName = "crx3_workspace"
-	unpackToolName    = "crx3_unpack"
-	scanToolName      = "crx3_scan"
+	searchToolName    = "search"
+	downloadToolName  = "download"
+	workspaceToolName = "workspace"
+	unpackToolName    = "unpack"
+	scanToolName      = "scan"
 )
 
 type ToolInfo struct {
@@ -96,6 +96,7 @@ type Options struct {
 
 type handler struct {
 	opts *Options
+	svc  crx3service
 }
 
 func ServeHTTP(ctx context.Context, addr string) error {
@@ -126,7 +127,7 @@ func ServeStdIO(
 		Version: opts.Version,
 	}, srvOpts)
 
-	h := &handler{opts: &opts}
+	h := &handler{opts: &opts, svc: impl{}}
 	makeTools(mcpServer, h, tools)
 
 	return mcpServer.Run(ctx, &sdkmcp.StdioTransport{})

@@ -91,22 +91,18 @@ func makeScanMarkdownTable(extensions []*crx3.ExtensionInfo) string {
 		}
 		var sizeStr string
 		if ext.Type == "dir" {
-			sizeStr = "directory"
+			sizeStr = "-"
 		} else {
 			sizeStr = fmt.Sprintf("%d", ext.Size)
 		}
-		typeStr := ext.Type
-		if typeStr == "dir" {
-			typeStr = "directory"
-		}
 		name = escapeMarkdown(name)
 		path := escapeMarkdown(ext.Path)
-		typeStr = escapeMarkdown(typeStr)
+		et := escapeMarkdown(ext.Type)
 		sizeStr = escapeMarkdown(sizeStr)
 		modified := escapeMarkdown(ext.Modified)
 
 		sb.WriteString(fmt.Sprintf("| %s | %s | %s | %s | %s |\n",
-			name, path, typeStr, sizeStr, modified))
+			name, path, et, sizeStr, modified))
 	}
 
 	return sb.String()

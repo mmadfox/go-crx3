@@ -1,5 +1,9 @@
 .PHONY: deps test mocks cover sync-coveralls docker-protoc proto
 
+.PHONY: gen
+gen:
+	go generate ./generate.go
+
 deps:
 	go mod download
 

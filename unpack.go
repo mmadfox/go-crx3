@@ -15,16 +15,39 @@ import (
 
 const extensionID = "crx3.id"
 
+// UnpackOption is a function that configures unpacking behavior.
+type UnpackOption func(*unpackOptions)
+
+// unpackOptions holds configuration for unpacking CRX files.
+type unpackOptions struct {
+	disableSubdir bool
+}
+
+func defaultUnpackOptions() *unpackOptions {
+	return &unpackOptions{}
+}
+
+// UnpackDisableSubdir returns an option to disable creation of a subdirectory
+// when unpacking. The contents will be extracted directly into the target directory.
+func UnpackDisableSubdir() UnpackOption {
+	return func(o *unpackOptions) {
+		o.disableSubdir = true
+	}
+}
+
 // UnpackTo unpacks a CRX (Chrome Extension) file specified by 'filename' to the directory 'dirname'.
 // If 'dirname' does not exist, it creates the directory before unpacking.
-func UnpackTo(filename string, dirname string) error {
+func UnpackTo(filename string, dirname string, opts ...UnpackOption) error {
+	conf := new(unpackOptions)
+	for _, opt := range opts {
+		opt(conf)
+	}
 	if !isDir(dirname) {
-		if err := os.Mkdir(dirname, 0755); err != nil {
+		if err := os.MkdirAll(dirname, 0755); err != nil {
 			return err
 		}
 	}
-
-	return unpack(filename, dirname)
+	return unpack(filename, dirname, conf)
 }
 
 // Unpack unpacks a CRX (Chrome Extension) file specified by 'filename' to its original contents.
@@ -32,10 +55,10 @@ func UnpackTo(filename string, dirname string) error {
 // and then extracts and decompresses the original contents.
 // The unpacked contents are placed in a directory with the same name as the original file (without the '.crx' extension).
 func Unpack(filename string) error {
-	return unpack(filename, "")
+	return unpack(filename, "", defaultUnpackOptions())
 }
 
-func unpack(filename string, dirname string) error {
+func unpack(filename string, dirname string, conf *unpackOptions) (err error) {
 	// check if the file is in the CRX format.
 	if len(filename) == 0 || !isCRX(filename) {
 		return ErrUnsupportedFileFormat
@@ -77,8 +100,12 @@ func unpack(filename string, dirname string) error {
 
 	var unpacked string
 	if len(dirname) > 0 {
-		fn := filepath.Base(filename)
-		unpacked = filepath.Join(dirname, strings.TrimSuffix(fn, crxExt))
+		if conf.disableSubdir {
+			unpacked = dirname
+		} else {
+			fn := filepath.Base(filename)
+			unpacked = filepath.Join(dirname, strings.TrimSuffix(fn, crxExt))
+		}
 	} else {
 		unpacked = strings.TrimSuffix(filename, crxExt)
 	}
