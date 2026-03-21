@@ -77,7 +77,7 @@ func (h *handler) downloadHandler(ctx context.Context, _ *sdkmcp.CallToolRequest
 	}
 
 	outfile := path.Join(extPath, extensionName)
-	if err := crx3.DownloadFromWebStore(extensionID, outfile); err != nil {
+	if err := h.svc.DownloadFromWebStore(extensionID, outfile); err != nil {
 		return nil, nil, fmt.Errorf("failed to download extension: %w", err)
 	}
 

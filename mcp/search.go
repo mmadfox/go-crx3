@@ -30,7 +30,7 @@ func (h *handler) searchHandler(ctx context.Context, _ *sdkmcp.CallToolRequest, 
 		return nil, nil, fmt.Errorf("empty query")
 	}
 
-	results, err := crx3.SearchExtensionByName(ctx, params.Name)
+	results, err := h.svc.SearchExtensionByName(ctx, params.Name)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to search extension %q: %w", params.Name, err)
 	}

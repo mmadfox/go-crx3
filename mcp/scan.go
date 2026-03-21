@@ -46,7 +46,7 @@ func (h *handler) scanHandler(ctx context.Context, _ *sdkmcp.CallToolRequest, pa
 	scanOpts = append(scanOpts, crx3.WithMaxDepth(10))
 
 	var results []*crx3.ExtensionInfo
-	for info, err := range crx3.Scan(h.opts.WorkDir, scanOpts...) {
+	for info, err := range h.svc.Scan(h.opts.WorkDir, scanOpts...) {
 		if err != nil {
 			return nil, nil, fmt.Errorf("scan workspace [%q] error: %w", h.opts.WorkDir, err)
 		}

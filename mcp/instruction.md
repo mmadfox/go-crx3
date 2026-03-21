@@ -63,6 +63,56 @@ These instructions describe how to efficiently work with the CRX3 tools set usin
 → Creates: ./rasshireniya/adblock/ OR ./расширения/адблок/ (depends on OS support)
 </example>
 
+### crx3_pack
+- **When to use:**: User wants to create/rebuild a .crx file from an unpacked extension directory or zip archive.
+- **Input handling:**:
+If source is an unpacked directory → Pass sourceDir to pack it.
+If source is a zip file → Pass sourceZip to pack it.
+If user modified an unpacked extension → Use crx3_pack to rebuild after changes.
+Output: Path to the newly created .crx file (saved in workspace).
+
+<params>
+- `sourceDir` (string, optional): Path to unpacked extension directory (relative to workspace).
+- Example: `./unpacked/abc123/`
+
+sourceZip (string, optional): Path to zip archive with extension source (relative to workspace).
+Example: ./source/my-extension.zip
+Tool auto-extracts before packing.
+outputPath (string, optional): Target path for the .crx file (relative to workspace).
+If omitted: auto-generates ./packed/<name-or-id>.crx
+Naming rules: Same as `crx3_unpack` — Cyrillic allowed, special chars sanitized.
+keyPath (string, optional): Path to existing private key (.pem) for signing.
+If omitted: tool generates new key pair and saves .pem alongside .crx.
+overwrite (bool, optional): Allow overwriting existing .crx file. Default: false.
+</params>
+
+<critical_rules>
+1. **Source validation:** Exactly one of `sourceDir` or `sourceZip` must be provided. If both or none → ask user to clarify.
+2. **Workspace-relative paths:** All input/output paths must be relative to workspace root. Never use absolute paths.
+3. **Key management:**
+- If `keyPath` not provided, new key is generated → inform user and provide path to `.pem`.
+- Store key path in context: "Use this key for future updates to maintain extension ID".
+5. **ID consistency:** Packing with the same key preserves the Extension ID. Packing with a new key → new ID.
+6. **Context tracking:** After pack, cache the `.crx` path and associated key path for future `crx3_download`/`crx3_unpack` workflow.
+7. **Conflict handling:** If `outputPath` exists and `overwrite=false` → suggest alternative name or ask user.
+</critical_rules>
+
+<examples>
+```json
+// Pack unpacked directory, auto output path
+{"sourceDir": "./unpacked/abc123/"}
+→ Creates: ./packed/abc123.crx + ./packed/abc123.pem
+// Pack with custom output and existing key
+{"sourceDir": "./modified/react-devtools/", "outputPath": "./release/react-devtools-v2.crx", "keyPath": "./keys/react.pem"}
+→ Creates: ./release/react-devtools-v2.crx (same ID as original)
+// Pack from zip archive
+{"sourceZip": "./source/my-extension.zip", "outputPath": "./packed/my-extension.crx"}
+→ Extracts zip → packs → ./packed/my-extension.crx
+// Russian output path (auto-sanitized)
+{"sourceDir": "./распаковано/ублок/", "outputPath": "./сборка/ублок-новая-версия.crx"}
+→ Creates: ./sborka/ublock-novaya-versiya.crx
+</examples>
+
 ### `crx3_scan`
 - **When to use:**
   - User references a downloaded extension but filepath is unknown from context

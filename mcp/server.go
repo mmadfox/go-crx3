@@ -17,6 +17,7 @@ const (
 	workspaceToolName = "workspace"
 	unpackToolName    = "unpack"
 	scanToolName      = "scan"
+	packToolName      = "pack"
 )
 
 type ToolInfo struct {
@@ -77,6 +78,14 @@ func MakeAllTools(opts *Options) []ToolInfo {
 			Name:        scanToolName,
 			Title:       scanTitle,
 			Description: makeDescription(tplData, scanToolName, scanDescription),
+		})
+	}
+
+	if isNotDisabledTool(packToolName) {
+		tools = append(tools, ToolInfo{
+			Name:        packToolName,
+			Title:       packTitle,
+			Description: makeDescription(tplData, packToolName, packDescription),
 		})
 	}
 
@@ -174,6 +183,12 @@ func makeTools(mcpServer *sdkmcp.Server, h *handler, tools []ToolInfo) {
 				Name:        tool.Name,
 				Description: tool.Description,
 			}, h.scanHandler)
+		case packToolName:
+			sdkmcp.AddTool(mcpServer, &sdkmcp.Tool{
+				Title:       tool.Title,
+				Name:        tool.Name,
+				Description: tool.Description,
+			}, h.packHandler)
 		}
 	}
 }

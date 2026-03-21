@@ -10,8 +10,12 @@
 package mcp
 
 import (
+	context "context"
+	rsa "crypto/rsa"
+	iter "iter"
 	reflect "reflect"
 
+	crx3 "github.com/mediabuyerbot/go-crx3"
 	gomock "go.uber.org/mock/gomock"
 )
 
@@ -37,6 +41,68 @@ func NewMockcrx3service(ctrl *gomock.Controller) *Mockcrx3service {
 // EXPECT returns an object that allows the caller to indicate expected use.
 func (m *Mockcrx3service) EXPECT() *Mockcrx3serviceMockRecorder {
 	return m.recorder
+}
+
+// DownloadFromWebStore mocks base method.
+func (m *Mockcrx3service) DownloadFromWebStore(extensionID, filename string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DownloadFromWebStore", extensionID, filename)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// DownloadFromWebStore indicates an expected call of DownloadFromWebStore.
+func (mr *Mockcrx3serviceMockRecorder) DownloadFromWebStore(extensionID, filename any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DownloadFromWebStore", reflect.TypeOf((*Mockcrx3service)(nil).DownloadFromWebStore), extensionID, filename)
+}
+
+// PackTo mocks base method.
+func (m *Mockcrx3service) PackTo(source, dest string, pk *rsa.PrivateKey) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "PackTo", source, dest, pk)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// PackTo indicates an expected call of PackTo.
+func (mr *Mockcrx3serviceMockRecorder) PackTo(source, dest, pk any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PackTo", reflect.TypeOf((*Mockcrx3service)(nil).PackTo), source, dest, pk)
+}
+
+// Scan mocks base method.
+func (m *Mockcrx3service) Scan(rootPath string, opts ...crx3.ScanOption) iter.Seq2[*crx3.ExtensionInfo, error] {
+	m.ctrl.T.Helper()
+	varargs := []any{rootPath}
+	for _, a := range opts {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "Scan", varargs...)
+	ret0, _ := ret[0].(iter.Seq2[*crx3.ExtensionInfo, error])
+	return ret0
+}
+
+// Scan indicates an expected call of Scan.
+func (mr *Mockcrx3serviceMockRecorder) Scan(rootPath any, opts ...any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]any{rootPath}, opts...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Scan", reflect.TypeOf((*Mockcrx3service)(nil).Scan), varargs...)
+}
+
+// SearchExtensionByName mocks base method.
+func (m *Mockcrx3service) SearchExtensionByName(ctx context.Context, name string) ([]crx3.SearchResult, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SearchExtensionByName", ctx, name)
+	ret0, _ := ret[0].([]crx3.SearchResult)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// SearchExtensionByName indicates an expected call of SearchExtensionByName.
+func (mr *Mockcrx3serviceMockRecorder) SearchExtensionByName(ctx, name any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SearchExtensionByName", reflect.TypeOf((*Mockcrx3service)(nil).SearchExtensionByName), ctx, name)
 }
 
 // UnpackTo mocks base method.

@@ -33,11 +33,11 @@ type unpackResult struct {
 func (h *handler) unpackHandler(ctx context.Context, _ *sdkmcp.CallToolRequest, params unpackParams) (*sdkmcp.CallToolResult, any, error) {
 	extensionFilepath, err := h.opts.joinPath(params.Filepath)
 	if err != nil {
-		return nil, nil, fmt.Errorf("Failed to join path: %w", err)
+		return nil, nil, fmt.Errorf("failed to join path: %w", err)
 	}
 	isFileInvalid := !isFile(extensionFilepath) || filepath.Ext(extensionFilepath) != ".crx"
 	if isFileInvalid {
-		return nil, nil, fmt.Errorf("Extension not found %q", params.Filepath)
+		return nil, nil, fmt.Errorf("extension not found %q", params.Filepath)
 	}
 
 	outputDir := params.OutputDir
@@ -53,11 +53,11 @@ func (h *handler) unpackHandler(ctx context.Context, _ *sdkmcp.CallToolRequest, 
 
 	targetDir, err := h.opts.joinPath(outputDir)
 	if err != nil {
-		return nil, nil, fmt.Errorf("Failed to join unpacked path: %w", err)
+		return nil, nil, fmt.Errorf("failed to join unpacked path: %w", err)
 	}
 
 	if err := h.svc.UnpackTo(extensionFilepath, targetDir); err != nil {
-		return nil, nil, fmt.Errorf("Failed to unpack %q to %q: %w", params.Filepath, outputDir, err)
+		return nil, nil, fmt.Errorf("failed to unpack %q to %q: %w", params.Filepath, outputDir, err)
 	}
 
 	resp := &sdkmcp.CallToolResult{
