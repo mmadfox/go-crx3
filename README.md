@@ -7,7 +7,7 @@
 
 A comprehensive toolset for CRX3 Chrome extension management with AI integration via Model Context Protocol (MCP).
 
-## 👉 [MCP Configuration Guide](./README.md)
+## 👉 [MCP Configuration Guide](./MCP.md)
 ## Features
 - 📦 **Pack & Unpack** – Create and extract CRX3 extension packages
 - 🗜️ **Zip & Unzip** – Handle extension archive operations
