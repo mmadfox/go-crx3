@@ -1,4 +1,4 @@
-# 🤖 AI Integration Guide for go-crx3-mcp
+# 🤖 AI Integration Guide for crx3
 
 > **Model Context Protocol (MCP) integration for CRX3 Chrome extension tooling**
 
