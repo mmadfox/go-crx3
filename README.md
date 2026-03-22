@@ -1,10 +1,28 @@
-# go-crx3 
+# go-crx3-mcp
+
 [![Coverage Status](https://coveralls.io/repos/github/mmadfox/go-crx3/badge.svg?branch=master)](https://coveralls.io/github/mmadfox/go-crx3?branch=master)
 [![Documentation](https://godoc.org/github.com/mediabuyerbot/go-crx3?status.svg)](https://pkg.go.dev/github.com/mediabuyerbot/go-crx3)
 [![Go Report Card](https://goreportcard.com/badge/github.com/mediabuyerbot/go-crx3)](https://goreportcard.com/report/github.com/mediabuyerbot/go-crx3)
 ![Actions](https://github.com/mmadfox/go-crx3/actions/workflows/cover.yml/badge.svg)
 
-Provides a sets of tools packing, unpacking, zip, unzip, download, gen id, etc...
+A comprehensive toolset for CRX3 Chrome extension management with AI integration via Model Context Protocol (MCP).
+
+## 👉 [MCP Configuration Guide](./MCP.md)
+## Features
+- 📦 **Pack & Unpack** – Create and extract CRX3 extension packages
+- 🗜️ **Zip & Unzip** – Handle extension archive operations
+- ⬇️ **Download** – Fetch extensions from Chrome Web Store or other sources
+- 🔑 **ID Generation** – Generate extension IDs from public keys
+- 🤖 **MCP Support** – Native integration with AI agents via Model Context Protocol
+
+## MCP Integration
+This tool is now **AI-compatible** through MCP, enabling seamless interaction with:
+- Opencode
+- Crush
+- Other MCP-enabled AI assistants
+
+Automate CRX3 operations through natural language commands powered by AI.
+
 
 ## Table of contents
 + [Code examples](/examples/)
