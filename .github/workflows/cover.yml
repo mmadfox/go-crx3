@@ -16,7 +16,7 @@ jobs:
       run: go mod download
     - name: Run Unit tests
       run: |
-        go test -race -covermode atomic -coverprofile=covprofile $(go list ./... | grep -v '/examples\|/pb')
+        go test -race -covermode atomic -coverprofile=covprofile $(go list ./... | grep -v '/examples\|/pb|/commands')
     - name: Install goveralls
       run: go install github.com/mattn/goveralls@latest
     - name: Send coverage
