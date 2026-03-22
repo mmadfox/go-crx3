@@ -3,31 +3,36 @@ name: Release Go project
 on:
   push:
     tags:
-      - "*" 
+      - v*
+
+permissions:
+  contents: write
+  packages: write
 
 jobs:
-  build:
-    name: GoReleaser build
+  goreleaser:
     runs-on: ubuntu-latest
-
     steps:
-      - name: Check out code into the Go module directory
-        uses: actions/checkout@v2
+      - name: Checkout
+        uses: actions/checkout@v4
         with:
-          fetch-depth: 0 
+          fetch-depth: 0
 
-      - name: Set up Go 1.22
-        uses: actions/setup-go@v2
+      - name: Set up Go
+        uses: actions/setup-go@v5
         with:
-          go-version: 1.22
-        id: go
+          go-version: '1.26'
+          cache: true
 
       - name: Run GoReleaser
-        uses: goreleaser/goreleaser-action@master
+        uses: goreleaser/goreleaser-action@v5
         with:
+          distribution: goreleaser
           version: latest
-          args: release 
-          workdir: ./crx3
+          args: release --clean
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           CGO_ENABLED: 0
+          # HOMEBREW_TAP_GITHUB_TOKEN: ${{ secrets.HOMEBREW_TAP_TOKEN }}
+          # AUR_KEY: ${{ secrets.AUR_SSH_KEY }}
+          # FURY_TOKEN: ${{ secrets.FURY_TOKEN }}
