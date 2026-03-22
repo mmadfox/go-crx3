@@ -14,9 +14,16 @@ type crx3service interface {
 	SearchExtensionByName(ctx context.Context, name string) ([]crx3.SearchResult, error)
 	Scan(rootPath string, opts ...crx3.ScanOption) iter.Seq2[*crx3.ExtensionInfo, error]
 	DownloadFromWebStore(extensionID string, filename string) error
+	GetID(filename string) (string, error)
+	Base64(filename string) ([]byte, error)
+	UnzipTo(filename string, dirname string) error
+	ZipTo(source string, dest string) error
+	Version() string
 }
 
-type impl struct{}
+type impl struct {
+	version string
+}
 
 func (impl) UnpackTo(filename string, dirname string) error {
 	return crx3.UnpackTo(filename, dirname, crx3.UnpackDisableSubdir())
@@ -36,4 +43,24 @@ func (impl) Scan(rootPath string, opts ...crx3.ScanOption) iter.Seq2[*crx3.Exten
 
 func (impl) DownloadFromWebStore(extensionID string, filename string) error {
 	return crx3.DownloadFromWebStore(extensionID, filename)
+}
+
+func (impl) GetID(filename string) (string, error) {
+	return crx3.Extension(filename).ID()
+}
+
+func (impl) Base64(filename string) ([]byte, error) {
+	return crx3.Extension(filename).Base64()
+}
+
+func (impl) UnzipTo(filename string, dirname string) error {
+	return crx3.UnzipTo(filename, dirname)
+}
+
+func (impl) ZipTo(source string, dest string) error {
+	return crx3.ZipTo(source, dest)
+}
+
+func (s impl) Version() string {
+	return s.version
 }

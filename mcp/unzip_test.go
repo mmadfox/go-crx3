@@ -2,7 +2,6 @@ package mcp
 
 import (
 	"context"
-	"encoding/json"
 	"os"
 	"path/filepath"
 	"testing"
@@ -12,7 +11,7 @@ import (
 	gomock "go.uber.org/mock/gomock"
 )
 
-func Test_handler_unpackHandler(t *testing.T) {
+func Test_handler_unzipHandler(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
@@ -30,7 +29,7 @@ func Test_handler_unpackHandler(t *testing.T) {
 		name    string
 		handler func() (*handler, serviceParams)
 		expect  func(*testing.T, serviceParams, *sdkmcp.CallToolResult)
-		params  unpackParams
+		params  unzipParams
 		wantErr bool
 	}{
 		{
@@ -39,7 +38,7 @@ func Test_handler_unpackHandler(t *testing.T) {
 				h := &handler{opts: &Options{WorkDir: "/"}}
 				return h, serviceParams{}
 			},
-			params: unpackParams{
+			params: unzipParams{
 				Filepath: ".../...",
 			},
 			wantErr: true,
@@ -50,88 +49,77 @@ func Test_handler_unpackHandler(t *testing.T) {
 				h := &handler{opts: &Options{WorkDir: "/testdata/workspace"}}
 				return h, serviceParams{}
 			},
-			params: unpackParams{
-				Filepath: "some_extension.crx",
+			params: unzipParams{
+				Filepath: "some_extension.zip",
 			},
 			wantErr: true,
 		},
 		{
-			name: "should unpack extension with output dir",
+			name: "should unzip extension with output dir",
 			handler: func() (*handler, serviceParams) {
 				svc := NewMockcrx3service(ctrl)
 
 				sp := serviceParams{
-					expectExtensionFilename: toPath("./testdata/workspace/extension.crx"),
-					expectOutputDir:         toPath("./testdata/workspace/somepath/my_extension"),
+					expectExtensionFilename: toPath("./testdata/workspace/extension.zip"),
+					expectOutputDir:         toPath("./testdata/workspace/somepath/my-extension"),
 				}
 
-				svc.EXPECT().UnpackTo(sp.expectExtensionFilename, sp.expectOutputDir).Return(nil)
+				svc.EXPECT().UnzipTo(sp.expectExtensionFilename, sp.expectOutputDir).Return(nil)
 				h := &handler{svc: svc, opts: &Options{WorkDir: "testdata/workspace"}}
 
 				return h, sp
 			},
-			params: unpackParams{
-				Filepath:  "./extension.crx",
+			params: unzipParams{
+				Filepath:  "./extension.zip",
 				OutputDir: "./somepath/my-extension",
 			},
 			expect: func(t *testing.T, sp serviceParams, res *sdkmcp.CallToolResult) {
 				// structured content
-				assert.Equal(t, res.StructuredContent.(unpackResult).Filepath, sp.expectOutputDir)
+				assert.Equal(t, res.StructuredContent.(unzipResult).Filepath, sp.expectOutputDir)
 				// content
-				assertText(t, res, "Successfully unpacked extension")
+				assertText(t, res, "Successfully unzipped extension")
 			},
 		},
 		{
-			name: "should unpack extension without output dir",
+			name: "should unzip extension without output dir",
 			handler: func() (*handler, serviceParams) {
 				svc := NewMockcrx3service(ctrl)
 
 				sp := serviceParams{
-					expectExtensionFilename: toPath("./testdata/workspace/extension.crx"),
-					expectOutputDir:         toPath("./testdata/workspace/unpacked_extension"),
+					expectExtensionFilename: toPath("./testdata/workspace/extension.zip"),
+					expectOutputDir:         toPath("./testdata/workspace/unzipped_extension"),
 				}
 
-				svc.EXPECT().UnpackTo(sp.expectExtensionFilename, sp.expectOutputDir).Return(nil)
+				svc.EXPECT().UnzipTo(sp.expectExtensionFilename, sp.expectOutputDir).Return(nil)
 				h := &handler{svc: svc, opts: &Options{WorkDir: "testdata/workspace"}}
 
 				return h, sp
 			},
-			params: unpackParams{
-				Filepath: "./extension.crx",
+			params: unzipParams{
+				Filepath: "./extension.zip",
 			},
 			expect: func(t *testing.T, sp serviceParams, res *sdkmcp.CallToolResult) {
 				// structured content
-				assert.Equal(t, res.StructuredContent.(unpackResult).Filepath, sp.expectOutputDir)
+				assert.Equal(t, res.StructuredContent.(unzipResult).Filepath, sp.expectOutputDir)
 				// content
-				assertText(t, res, "Successfully unpacked extension")
+				assertText(t, res, "Successfully unzipped extension")
 			},
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			h, sp := tt.handler()
-			got, _, gotErr := h.unpackHandler(context.Background(), nil, tt.params)
+			got, _, gotErr := h.unzipHandler(context.Background(), nil, tt.params)
 			if gotErr != nil {
 				if !tt.wantErr {
-					t.Errorf("unpackHandler() failed: %v", gotErr)
+					t.Errorf("unzipHandler() failed: %v", gotErr)
 				}
 				return
 			}
 			if tt.wantErr {
-				t.Fatal("unpackHandler() succeeded unexpectedly")
+				t.Fatal("unzipHandler() succeeded unexpectedly")
 			}
 			tt.expect(t, sp, got)
 		})
 	}
-}
-
-func assertText(t *testing.T, res *sdkmcp.CallToolResult, expected string) {
-	assert.Len(t, res.Content, 1)
-	data, err := res.Content[0].MarshalJSON()
-	assert.NoError(t, err)
-	var text = struct {
-		Text string `json:"text"`
-	}{}
-	assert.NoError(t, json.Unmarshal(data, &text))
-	assert.Contains(t, text.Text, expected)
 }

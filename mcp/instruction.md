@@ -1,144 +1,434 @@
-# The CRX3 MCP Server
+# CRX3 MCP Server — Complete Tool Instructions
 
-These instructions describe how to efficiently work with the CRX3 tools set using the MCP server. You can load this file directly into a session where the CRX3 MCP server is connected.
+===============================================================================
+TOOLS OVERVIEW
+===============================================================================
 
-## Tool Usage Logic
+Tool                | Purpose
+--------------------|--------------------------------------------------
+crx3_search         | Search Chrome Web Store by name/keywords
+crx3_download       | Download .crx extension by ID or URL
+crx3_workspace      | Get absolute path to workspace root
+crx3_unpack         | Extract .crx file contents to directory
+crx3_pack           | Pack directory/zip into signed .crx
+crx3_scan           | List/filter downloaded extensions in workspace
+crx3_unzip          | Extract .zip archive contents
+crx3_zip            | Create .zip archive from directory
+crx3_base64         | Encode file to Base64 string
+crx3_getid          | Extract Chrome Extension ID from .crx or directory
+crx3_version        | Show CRX3 tool version
 
-### `crx3_search`
-- **When to use:** User provided a name/keywords, but no exact Extension ID is available.
-- **Result:** List of found extensions with their `extensionId`.
+===============================================================================
+crx3_search
+===============================================================================
 
-### `crx3_download`
-- **When to use:** User wants to download the extension file (.crx).
-- **Input handling:**
-  1. If user provided a name → First call `crx3_search`, extract the `extensionId` from results.
-  2. If user provided `extensionId` or URL → Call `crx3_download` directly.
-- **Storage:** All files are saved in the **workspace root directory**. Subdirectories are created relative to the root.
+WHEN TO USE:
+- User provides extension name/keywords but no exact ID
+- Need to discover extension ID before download
+- Browsing available extensions by category or feature
 
-### `crx3_workspace`
-- **When to use:** User asks where files are saved or needs the absolute path to the extension storage.
-- **Input:** No parameters required.
-- **Output:** Absolute path to the workspace root.
+PARAMETERS:
+- query (required): Search query (extension name, keywords, or partial match)
+- limit (optional): Maximum number of results to return (default: 10, 0 = all)
 
-### `crx3_unpack`
-- **When to use:** User wants to extract/inspect the contents of a .crx file.
-- **Input handling:**
-  1. If filepath is known from context → Call `crx3_unpack` directly.
-  2. If filepath is unknown → First call `crx3_scan` to locate the file.
+CRITICAL RULES:
+- Results may include unofficial/malicious extensions — verify source before download
+- If multiple results match, present options to user for selection
+- Search is case-insensitive and supports partial keyword matching
 
-<params>
-- `filepath` (string, required): Path to the .crx file.
-  - Use `path` from `crx3_scan` results OR from previous `crx3_download` output.
-  - Must be relative to workspace root (e.g., `./extensions/abc123.crx`).
+EXAMPLES:
+{"query": "password manager", "limit": 5}
+{"query": "adblock"}
 
-- `outputDir` (string, optional): Target directory for unpacked contents.
-  - **Auto-decision:** If omitted, tool creates directory using extension name/ID (e.g., `./unpacked/abc123/`).
-  - **User-specified:** If user requests a specific folder, pass it here (e.g., `./my-tools/react-devtools/`).
-  - **Naming rules:**
-    - ✅ Allowed: letters (a-z, A-Z, Cyrillic), numbers, hyphens (`-`), underscores (`_`)
-    - ❌ Forbidden: special chars (`*`, `?`, `:`, `|`, `<`, `>`), leading dots (`.`), backslashes (`\`)
-    - Cross-OS safe: tool auto-converts invalid chars to `_`
-  - **Path format:** Always use forward slashes (`/`), relative to workspace root.
-</params>
+===============================================================================
+crx3_download
+===============================================================================
 
-<critical_rules>
-1. **Path validation:** Never pass absolute paths (`/home/...`, `C:\Users\...`). All paths must be workspace-relative.
-2. **Directory creation:** If `outputDir` doesn't exist, tool creates it automatically — no need to check first.
-3. **Name sanitization:** If user provides Russian/special chars in `outputDir`, tool sanitizes them. Inform user if name was modified.
-4. **Context tracking:** After unpack, cache the returned `filepath` for future reference (e.g., "the unpacked extension").
-</critical_rules>
+WHEN TO USE:
+- User wants to download a specific extension
+- After crx3_search to download selected extension
+- Re-download extension for fresh copy or update
 
-<examples>
-```json
-// Auto-generated directory (omit outputDir)
-{"filepath": "./ext/abc123.crx"}
-→ Creates: ./unpacked/abc123/
+PARAMETERS:
+- extensionId OR url (required, one of): 32-char Chrome extension ID or full Chrome Web Store URL
+- path (optional): Workspace-relative path to save .crx file (default: ./extensions/{extensionId}.crx)
 
-// Custom directory (user specified)
-{"filepath": "./ext/abc123.crx", "outputDir": "./my-tools/react-devtools/"}
-→ Creates: ./my-tools/react-devtools/
+CRITICAL RULES:
+- Use workspace-relative paths only: "./downloads/ext.crx"
+- NEVER use absolute paths: "/home/user/...", "C:\Users\..."
+- Tool auto-extracts extension ID from URLs
+- Tool creates parent directories automatically
+- After download, cache filepath for subsequent unpack/inspect operations
 
-// Russian directory name (auto-sanitized)
-{"filepath": "./ext/abc123.crx", "outputDir": "./расширения/адблок/"}
-→ Creates: ./rasshireniya/adblock/ OR ./расширения/адблок/ (depends on OS support)
-</example>
+EXAMPLES:
+{"extensionId": "nkbihfbeogaeaoehlefnkodbefgpgknn"}
+{"url": "https://chrome.google.com/webstore/detail/nkbihfbeogaeaoehlefnkodbefgpgknn", "path": "./releases/metamask-latest.crx"}
 
-### crx3_pack
-- **When to use:**: User wants to create/rebuild a .crx file from an unpacked extension directory or zip archive.
-- **Input handling:**:
-If source is an unpacked directory → Pass sourceDir to pack it.
-If source is a zip file → Pass sourceZip to pack it.
-If user modified an unpacked extension → Use crx3_pack to rebuild after changes.
-Output: Path to the newly created .crx file (saved in workspace).
+===============================================================================
+crx3_workspace
+===============================================================================
 
-<params>
-- `sourceDir` (string, optional): Path to unpacked extension directory (relative to workspace).
-- Example: `./unpacked/abc123/`
+WHEN TO USE:
+- User asks "where are files saved?"
+- Need to construct absolute paths for external tools
+- Debugging path-related issues
 
-sourceZip (string, optional): Path to zip archive with extension source (relative to workspace).
-Example: ./source/my-extension.zip
-Tool auto-extracts before packing.
-outputPath (string, optional): Target path for the .crx file (relative to workspace).
-If omitted: auto-generates ./packed/<name-or-id>.crx
-Naming rules: Same as `crx3_unpack` — Cyrillic allowed, special chars sanitized.
-keyPath (string, optional): Path to existing private key (.pem) for signing.
-If omitted: tool generates new key pair and saves .pem alongside .crx.
-overwrite (bool, optional): Allow overwriting existing .crx file. Default: false.
-</params>
+PARAMETERS: None
 
-<critical_rules>
-1. **Source validation:** Exactly one of `sourceDir` or `sourceZip` must be provided. If both or none → ask user to clarify.
-2. **Workspace-relative paths:** All input/output paths must be relative to workspace root. Never use absolute paths.
-3. **Key management:**
-- If `keyPath` not provided, new key is generated → inform user and provide path to `.pem`.
-- Store key path in context: "Use this key for future updates to maintain extension ID".
-5. **ID consistency:** Packing with the same key preserves the Extension ID. Packing with a new key → new ID.
-6. **Context tracking:** After pack, cache the `.crx` path and associated key path for future `crx3_download`/`crx3_unpack` workflow.
-7. **Conflict handling:** If `outputPath` exists and `overwrite=false` → suggest alternative name or ask user.
-</critical_rules>
+CRITICAL RULES:
+- Use this tool to translate relative paths to absolute for user communication
+- Do NOT pass the returned absolute path to other CRX3 tools — they expect relative paths
+- Workspace root is configured at server startup and is read-only via this tool
 
-<examples>
-```json
-// Pack unpacked directory, auto output path
-{"sourceDir": "./unpacked/abc123/"}
-→ Creates: ./packed/abc123.crx + ./packed/abc123.pem
-// Pack with custom output and existing key
-{"sourceDir": "./modified/react-devtools/", "outputPath": "./release/react-devtools-v2.crx", "keyPath": "./keys/react.pem"}
-→ Creates: ./release/react-devtools-v2.crx (same ID as original)
-// Pack from zip archive
-{"sourceZip": "./source/my-extension.zip", "outputPath": "./packed/my-extension.crx"}
-→ Extracts zip → packs → ./packed/my-extension.crx
-// Russian output path (auto-sanitized)
-{"sourceDir": "./распаковано/ублок/", "outputPath": "./сборка/ублок-новая-версия.crx"}
-→ Creates: ./sborka/ublock-novaya-versiya.crx
-</examples>
+EXAMPLES:
+{}
 
-### `crx3_scan`
-- **When to use:**
-  - User references a downloaded extension but filepath is unknown from context
-  - User wants to browse, filter, or manage their extension library
-  - Need to locate a .crx file before unpacking or re-downloading
-- **Input handling:**
-  - `limit`: Use to restrict results (e.g., `limit: 5` for recent items). Omit or use `0` for all.
-  - `filter`: Array of keywords for name-based filtering. Case-insensitive, partial match, OR logic.
+===============================================================================
+crx3_unpack
+===============================================================================
 
+WHEN TO USE:
+- User wants to inspect extension source code
+- Before modifying extension files
+- After download to verify contents
 
-<critical_rules>
-1. **Parameter mapping:** Pass extensionId or URL to the `url` parameter of `crx3_download`.
-   - Accepts: 32-character ID OR full Chrome Web Store URL.
-   - The tool handles ID extraction from URLs automatically.
+PARAMETERS:
+- filepath (required): Path to .crx file (workspace-relative)
+- outputDir (optional): Target directory for extracted contents (workspace-relative, default: ./unpacked/{extensionId}/)
 
-2. **Workspace awareness:** 
-   - All downloads are stored relative to the workspace root.
-   - If user asks for the file location, call `crx3_workspace` to get the base path.
-   - Do NOT use arbitrary absolute paths (e.g., `/tmp/`, `C:/`) unless explicitly supported by the `path` parameter.
+PATH NAMING RULES:
+- Allowed: letters (a-z, A-Z, Cyrillic), numbers, hyphens (-), underscores (_), forward slashes (/)
+- Forbidden: * ? : | < > \ and leading dots
+- Tool auto-sanitizes invalid characters to underscore (_)
+- Always use forward slashes (/), relative to workspace root
 
-3. **Path parameter:** The `path` parameter in `crx3_download` is **relative to workspace root**, not the filesystem root.
-   - ✅ Correct: `./extensions/`, `my-downloads/`
-   - ❌ Incorrect: `/var/tmp/`, `C:/Users/...`
+CRITICAL RULES:
+- All paths must be workspace-relative — never absolute
+- Tool auto-creates outputDir if it doesn't exist
+- If outputDir name contains Russian/special chars, tool sanitizes — inform user
+- After unpack, cache outputDir for future pack/modify operations
 
-4. **Disambiguation:** If `crx3_search` returns multiple results, ask the user to specify which extension to download.
+EXAMPLES:
+{"filepath": "./extensions/abc123.crx"}
+{"filepath": "./ext/metamask.crx", "outputDir": "./audit/metamask-v10/"}
+{"filepath": "./ext/test.crx", "outputDir": "./расширения/тест/"}
 
-5. **Verification:** After download, you can use `crx3_workspace` + returned filepath to confirm the full location to the user.
+===============================================================================
+crx3_pack
+===============================================================================
 
-</critical_rules>
+WHEN TO USE:
+- User modified unpacked extension and wants to rebuild .crx
+- Create distributable .crx from source directory
+- Repack extension with new signing key
+
+PARAMETERS:
+- source (required): Path to source directory or .zip file (workspace-relative)
+- outputDir (optional): Directory for output .crx (workspace-relative, default: ./packed/)
+- name (optional): Custom filename for output .crx (without path)
+- privateKey (optional): Path to existing .pem private key for signing (workspace-relative)
+
+CRITICAL RULES:
+- source must be existing directory or .zip file — validate before calling
+- Tool auto-detects if source is directory or .zip
+- All paths workspace-relative — never absolute
+- KEY MANAGEMENT:
+  * If privateKey omitted → new key generated → inform user + provide .pem path
+  * Same key + manifest = same extension ID
+  * New key = new extension ID (breaks update chain)
+- Cache extensionID and privateKey path after pack for future updates
+- If output file exists → suggest alternative name or request overwrite confirmation
+
+EXAMPLES:
+{"source": "./unpacked/abc123/"}
+{"source": "./modified/react-devtools/", "outputDir": "./release/", "name": "react-devtools-v2.crx", "privateKey": "./keys/react.pem"}
+{"source": "./source/my-extension.zip", "outputDir": "./packed/", "name": "my-extension.crx"}
+
+===============================================================================
+crx3_scan
+===============================================================================
+
+WHEN TO USE:
+- User asks "what extensions do I have downloaded?"
+- Need to locate .crx filepath before unpack/pack operations
+- Browse or filter extension library by name/keyword
+
+PARAMETERS:
+- limit (optional): Max results (0 = unlimited, default: 0)
+- filter (optional): Array of keywords for name filtering (case-insensitive, OR logic)
+- sortBy (optional): Sort by "name", "date", or "size" (default: "date")
+
+CRITICAL RULES:
+- Results include only .crx files found in workspace (recursive scan)
+- Use filepath from results as input to crx3_unpack/crx3_getid
+- If no results: suggest downloading extension or verify workspace via crx3_workspace
+- Large libraries: recommend using filter/limit for performance
+
+EXAMPLES:
+{}
+{"filter": ["adblock", "privacy"], "limit": 5, "sortBy": "name"}
+
+===============================================================================
+crx3_unzip
+===============================================================================
+
+WHEN TO USE:
+- User has .zip with extension source to inspect/modify
+- Extract backup archives or downloaded source packages
+- Prepare files before packing into .crx
+
+PARAMETERS:
+- filepath (required): Path to .zip file (workspace-relative)
+- outputDir (optional): Target directory for extracted contents (workspace-relative, default: ./extracted/{zip-name}/)
+
+CRITICAL RULES:
+- filepath must point to existing .zip file
+- All paths workspace-relative — never absolute
+- If outputDir exists, tool merges contents (no automatic cleanup)
+- Preserve directory structure and file permissions where possible
+
+EXAMPLES:
+{"filepath": "./source/my-extension.zip"}
+{"filepath": "./backup/config.zip", "outputDir": "./restored/"}
+
+===============================================================================
+crx3_zip
+===============================================================================
+
+WHEN TO USE:
+- Prepare extension source for distribution
+- Create backup archive of modified extension
+- Compress files before transmission or storage
+
+PARAMETERS:
+- source (required): Path to source directory or file (workspace-relative)
+- outputDir (optional): Directory for output .zip (workspace-relative, default: ./archives/)
+- name (optional): Custom filename for output .zip (without path)
+
+CRITICAL RULES:
+- source must exist and be accessible
+- Recursive inclusion: all subdirectories and files included by default
+- All paths workspace-relative; invalid filename chars sanitized
+- Does not follow symbolic links by default
+
+EXAMPLES:
+{"source": "./my-extension/"}
+{"source": "./modified/react-devtools/", "outputDir": "./releases/", "name": "react-devtools-v2-source.zip"}
+
+===============================================================================
+crx3_base64
+===============================================================================
+
+WHEN TO USE:
+- Embed binary file in JSON config or HTML data URL
+- Transmit file content as text (e.g., API payload)
+- Prepare file for systems that require text-only input
+
+PARAMETERS:
+- filepath (required): Path to file to encode (workspace-relative)
+
+CRITICAL RULES:
+- Works with any file type (.crx, .zip, .json, .js, etc.)
+- Large files (>1MB) produce very long strings — warn user
+- Base64 increases size by ~33% — consider for bandwidth-sensitive use cases
+- All paths workspace-relative
+
+EXAMPLES:
+{"filepath": "./unpacked/abc123/manifest.json"}
+{"filepath": "./packed/my-extension.crx"}
+
+===============================================================================
+crx3_getid
+===============================================================================
+
+WHEN TO USE:
+- Verify extension identity before installation
+- Check if repacked extension preserves original ID
+- Debug extension loading issues related to ID mismatch
+
+PARAMETERS:
+- filepath (required): Path to .crx file or unpacked extension directory (workspace-relative)
+
+ID GENERATION LOGIC:
+1. If manifest.json contains "key" field → extract public key → compute ID
+2. Else if .crx header contains public key → compute ID from header
+3. Else → error: unsigned/invalid extension
+
+CRITICAL RULES:
+- Same public key + manifest = same ID (critical for update chain)
+- Repacking with different key → new ID → breaks auto-update
+- If extraction fails: extension may be unsigned, corrupted, or modified
+- All paths workspace-relative
+
+EXAMPLES:
+{"filepath": "./packed/metamask.crx"}
+{"filepath": "./unpacked/react-devtools/"}
+
+===============================================================================
+crx3_version
+===============================================================================
+
+WHEN TO USE:
+- Debugging: verify tool version matches documentation
+- Support: include version in bug reports
+- Audit: confirm deployment version
+
+PARAMETERS: None
+
+CRITICAL RULES:
+- Output is read-only informational
+- Version format follows semantic versioning (MAJOR.MINOR.PATCH)
+
+EXAMPLES:
+{}
+
+===============================================================================
+TYPICAL WORKFLOWS
+===============================================================================
+
+WORKFLOW: Download → Inspect → Modify → Repack
+
+1. Search & Download:
+   crx3_search {"query": "my extension", "limit": 5}
+   → Select extensionId
+   crx3_download {"extensionId": "abc123..."}
+
+2. Unpack for inspection:
+   crx3_unpack {"filepath": "./extensions/abc123.crx"}
+   → Returns outputDir: "./unpacked/abc123/"
+
+3. [User modifies files in ./unpacked/abc123/]
+
+4. Repack with same key (preserve ID):
+   crx3_pack {
+     "source": "./unpacked/abc123/",
+     "privateKey": "./packed/abc123.pem"
+   }
+   → Returns new .crx with same extensionID
+
+5. Verify ID matches:
+   crx3_getid {"filepath": "./packed/abc123.crx"}
+   → Confirm ID unchanged
+
+---
+
+WORKFLOW: Backup & Archive
+
+1. Scan for extensions:
+   crx3_scan {"filter": ["important"]}
+
+2. For each critical extension:
+   a. crx3_getid {"filepath": "./ext/example.crx"} → cache ID
+   b. crx3_unpack {"filepath": "./ext/example.crx", "outputDir": "./backup/example-src/"}
+   c. crx3_zip {"source": "./backup/example-src/", "name": "example-source-backup.zip"}
+   d. crx3_base64 {"filepath": "./ext/example.crx"} → store encoded copy in config
+
+---
+
+WORKFLOW: Development Cycle
+
+1. Start from source directory: ./my-extension/
+2. Create ZIP for portability:
+   crx3_zip {"source": "./my-extension/", "name": "my-extension-src.zip"}
+3. Pack to .crx for testing:
+   crx3_pack {"source": "./my-extension/", "outputDir": "./build/"}
+4. Get ID for manifest/permissions:
+   crx3_getid {"filepath": "./build/my-extension.crx"}
+5. [Test in Chrome]
+6. Iterate: modify source → repack → test
+
+===============================================================================
+CRITICAL BEST PRACTICES
+===============================================================================
+
+PATH SAFETY (MOST IMPORTANT):
+
+ALWAYS:
+- Use forward slashes: "./dir/file.crx"
+- Keep paths relative to workspace root
+- Use crx3_workspace to get absolute path for user communication only
+
+NEVER:
+- Pass absolute paths to CRX3 tools: "/home/...", "C:\Users\..."
+- Assume filesystem access outside workspace
+- Hardcode OS-specific path separators
+
+---
+
+KEY MANAGEMENT FOR EXTENSION ID PRESERVATION:
+
+- Chrome Extension ID = hash(public_key)
+- To preserve ID across repacks:
+  1. Save the .pem private key from first pack
+  2. Reuse same key in future crx3_pack calls via privateKey parameter
+  3. Never lose the .pem — losing it = losing ability to update extension with same ID
+
+Workflow example:
+  crx3_pack {"source": "./v1/"}
+  → Returns privateKey: "./packed/v1.pem"
+  # Save v1.pem securely!
+  crx3_pack {"source": "./v2/", "privateKey": "./packed/v1.pem"}
+  → Produces .crx with SAME extensionID
+
+---
+
+CONTEXT TRACKING CHECKLIST:
+
+Operation      | Cache These Values                    | Used By Next Step
+---------------|---------------------------------------|------------------
+crx3_search    | extensionId, name                     | crx3_download
+crx3_download  | filepath, extensionId                 | crx3_unpack, crx3_getid
+crx3_unpack    | outputDir, sourceCrx                  | manual edit, crx3_pack
+crx3_pack      | filepath (new .crx), privateKey, ID   | crx3_getid, distribution
+crx3_getid     | extensionID                           | verification, manifest
+
+---
+
+ERROR RECOVERY GUIDE:
+
+Error Scenario              | Suggested Action
+----------------------------|------------------------------------------------
+"File not found"            | Call crx3_scan to discover valid files
+"Invalid manifest"          | Verify source has manifest.json with required fields
+"ID extraction failed"      | Extension may be unsigned — check source integrity
+"Path not allowed"          | Ensure path is workspace-relative, use forward slashes
+"Key generation failed"     | Check workspace write permissions
+Multiple search results     | Present options to user; ask for explicit selection
+
+---
+
+CROSS-PLATFORM COMPATIBILITY:
+
+- Path sanitization: Cyrillic/special chars auto-converted to safe equivalents
+- Always inform user when path/name was modified due to sanitization
+- Use crx3_workspace to confirm actual filesystem paths when debugging
+- Test workflows on target OS if distributing extensions cross-platform
+
+===============================================================================
+TROUBLESHOOTING FAQ
+===============================================================================
+
+Q: Where are my downloaded files saved?
+A: Call crx3_workspace to get absolute root, then files are at {root}/{relative-path}.
+   Default download path: ./extensions/{extensionId}.crx
+
+Q: How do I keep the same extension ID when repacking?
+A: Save the .pem private key from first pack, then pass it via privateKey parameter
+   in subsequent crx3_pack calls. Same key + manifest = same ID.
+
+Q: crx3_unpack failed — what now?
+A: 1) Verify filepath exists via crx3_scan
+   2) Ensure path is workspace-relative
+   3) Check file is valid .crx (not corrupted or wrong format)
+
+Q: Can I use absolute paths if I really need to?
+A: No. CRX3 tools enforce workspace-relative paths for security and portability.
+   Use crx3_workspace to get absolute path for external tool integration only.
+
+Q: My Russian directory name was changed — why?
+A: Tool sanitizes paths for cross-OS compatibility. Invalid chars converted to '_'.
+   Use Latin characters, numbers, hyphens, underscores for best results.
+
+Q: How do I find which .crx file corresponds to which extension?
+A: Use crx3_scan with filter or crx3_getid on each candidate to match extensionId
+   with known values.

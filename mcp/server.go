@@ -18,6 +18,11 @@ const (
 	unpackToolName    = "unpack"
 	scanToolName      = "scan"
 	packToolName      = "pack"
+	getidToolName     = "getid"
+	base64ToolName    = "base64"
+	unzipToolName     = "unzip"
+	zipToolName       = "zip"
+	versionToolName   = "version"
 )
 
 type ToolInfo struct {
@@ -86,6 +91,46 @@ func MakeAllTools(opts *Options) []ToolInfo {
 			Name:        packToolName,
 			Title:       packTitle,
 			Description: makeDescription(tplData, packToolName, packDescription),
+		})
+	}
+
+	if isNotDisabledTool(getidToolName) {
+		tools = append(tools, ToolInfo{
+			Name:        getidToolName,
+			Title:       getidTitle,
+			Description: makeDescription(tplData, getidToolName, getidDescription),
+		})
+	}
+
+	if isNotDisabledTool(base64ToolName) {
+		tools = append(tools, ToolInfo{
+			Name:        base64ToolName,
+			Title:       base64Title,
+			Description: makeDescription(tplData, base64ToolName, base64Description),
+		})
+	}
+
+	if isNotDisabledTool(unzipToolName) {
+		tools = append(tools, ToolInfo{
+			Name:        unzipToolName,
+			Title:       unzipTitle,
+			Description: makeDescription(tplData, unzipToolName, unzipDescription),
+		})
+	}
+
+	if isNotDisabledTool(zipToolName) {
+		tools = append(tools, ToolInfo{
+			Name:        zipToolName,
+			Title:       zipTitle,
+			Description: makeDescription(tplData, zipToolName, zipDescription),
+		})
+	}
+
+	if isNotDisabledTool(versionToolName) {
+		tools = append(tools, ToolInfo{
+			Name:        versionToolName,
+			Title:       versionTitle,
+			Description: makeDescription(tplData, versionToolName, versionDescription),
 		})
 	}
 
@@ -189,6 +234,40 @@ func makeTools(mcpServer *sdkmcp.Server, h *handler, tools []ToolInfo) {
 				Name:        tool.Name,
 				Description: tool.Description,
 			}, h.packHandler)
+		case getidToolName:
+			sdkmcp.AddTool(mcpServer, &sdkmcp.Tool{
+				Title:       tool.Title,
+				Name:        tool.Name,
+				Description: tool.Description,
+			}, h.getidHandler)
+		case base64ToolName:
+			sdkmcp.AddTool(mcpServer, &sdkmcp.Tool{
+				Title:       tool.Title,
+				Name:        tool.Name,
+				Description: tool.Description,
+			}, h.base64Handler)
+		case unzipToolName:
+			sdkmcp.AddTool(mcpServer, &sdkmcp.Tool{
+				Title:       tool.Title,
+				Name:        tool.Name,
+				Description: tool.Description,
+			}, h.unzipHandler)
+		case zipToolName:
+			sdkmcp.AddTool(mcpServer, &sdkmcp.Tool{
+				Title:       tool.Title,
+				Name:        tool.Name,
+				Description: tool.Description,
+			}, h.zipHandler)
+		case versionToolName:
+			sdkmcp.AddTool(mcpServer, &sdkmcp.Tool{
+				Title:       tool.Title,
+				Name:        tool.Name,
+				Description: tool.Description,
+				Annotations: &sdkmcp.ToolAnnotations{
+					IdempotentHint: true,
+					ReadOnlyHint:   true,
+				},
+			}, h.versionHandler)
 		}
 	}
 }

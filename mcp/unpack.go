@@ -45,6 +45,11 @@ func (h *handler) unpackHandler(ctx context.Context, _ *sdkmcp.CallToolRequest, 
 		baseName := filepath.Base(params.Filepath)
 		baseName = strings.TrimSuffix(baseName, ".crx")
 		outputDir = strings.Join([]string{"unpacked", sanitizeFilename(baseName)}, "_")
+	} else {
+		dir := filepath.Dir(outputDir)
+		base := filepath.Base(outputDir)
+		sanitizedBase := sanitizeFilename(base)
+		outputDir = filepath.Join(dir, sanitizedBase)
 	}
 
 	if filepath.IsAbs(outputDir) {
@@ -100,8 +105,11 @@ func sanitizePath(input string) string {
 }
 
 func sanitizeFilename(input string) string {
+	input = strings.TrimSpace(input)
+	input = strings.Replace(input, "unpacked_", "", 1)
 	result := sanitizePath(input)
 	result = strings.ReplaceAll(result, ".", "_")
+	result = strings.ReplaceAll(result, " ", "_")
 	return result
 }
 

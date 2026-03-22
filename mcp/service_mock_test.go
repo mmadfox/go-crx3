@@ -43,6 +43,21 @@ func (m *Mockcrx3service) EXPECT() *Mockcrx3serviceMockRecorder {
 	return m.recorder
 }
 
+// Base64 mocks base method.
+func (m *Mockcrx3service) Base64(filename string) ([]byte, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Base64", filename)
+	ret0, _ := ret[0].([]byte)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// Base64 indicates an expected call of Base64.
+func (mr *Mockcrx3serviceMockRecorder) Base64(filename any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Base64", reflect.TypeOf((*Mockcrx3service)(nil).Base64), filename)
+}
+
 // DownloadFromWebStore mocks base method.
 func (m *Mockcrx3service) DownloadFromWebStore(extensionID, filename string) error {
 	m.ctrl.T.Helper()
@@ -55,6 +70,21 @@ func (m *Mockcrx3service) DownloadFromWebStore(extensionID, filename string) err
 func (mr *Mockcrx3serviceMockRecorder) DownloadFromWebStore(extensionID, filename any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DownloadFromWebStore", reflect.TypeOf((*Mockcrx3service)(nil).DownloadFromWebStore), extensionID, filename)
+}
+
+// GetID mocks base method.
+func (m *Mockcrx3service) GetID(filename string) (string, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetID", filename)
+	ret0, _ := ret[0].(string)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetID indicates an expected call of GetID.
+func (mr *Mockcrx3serviceMockRecorder) GetID(filename any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetID", reflect.TypeOf((*Mockcrx3service)(nil).GetID), filename)
 }
 
 // PackTo mocks base method.
@@ -117,4 +147,46 @@ func (m *Mockcrx3service) UnpackTo(filename, dirname string) error {
 func (mr *Mockcrx3serviceMockRecorder) UnpackTo(filename, dirname any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UnpackTo", reflect.TypeOf((*Mockcrx3service)(nil).UnpackTo), filename, dirname)
+}
+
+// UnzipTo mocks base method.
+func (m *Mockcrx3service) UnzipTo(filename, dirname string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UnzipTo", filename, dirname)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// UnzipTo indicates an expected call of UnzipTo.
+func (mr *Mockcrx3serviceMockRecorder) UnzipTo(filename, dirname any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UnzipTo", reflect.TypeOf((*Mockcrx3service)(nil).UnzipTo), filename, dirname)
+}
+
+// Version mocks base method.
+func (m *Mockcrx3service) Version() string {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Version")
+	ret0, _ := ret[0].(string)
+	return ret0
+}
+
+// Version indicates an expected call of Version.
+func (mr *Mockcrx3serviceMockRecorder) Version() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Version", reflect.TypeOf((*Mockcrx3service)(nil).Version))
+}
+
+// ZipTo mocks base method.
+func (m *Mockcrx3service) ZipTo(source, dest string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ZipTo", source, dest)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// ZipTo indicates an expected call of ZipTo.
+func (mr *Mockcrx3serviceMockRecorder) ZipTo(source, dest any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ZipTo", reflect.TypeOf((*Mockcrx3service)(nil).ZipTo), source, dest)
 }

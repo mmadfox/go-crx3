@@ -45,7 +45,7 @@ func (h *handler) packHandler(ctx context.Context, _ *sdkmcp.CallToolRequest, pa
 	}
 
 	if !isFile(sourcePath) && !isDir(sourcePath) {
-		return nil, nil, fmt.Errorf("source not found %q", params.Source)
+		return nil, nil, fmt.Errorf("source not found %q", sourcePath)
 	}
 
 	outputDir := params.OutputDir
@@ -98,7 +98,7 @@ func (h *handler) packHandler(ctx context.Context, _ *sdkmcp.CallToolRequest, pa
 		return nil, nil, fmt.Errorf("failed to pack %q to %q: %w", params.Source, outputFile, err)
 	}
 
-	extID, err := crx3.ID(outputFile)
+	extID, err := h.svc.GetID(outputFile)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to extract extension ID: %w", err)
 	}
