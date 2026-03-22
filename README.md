@@ -303,7 +303,6 @@ go tool cover -html=coverage.out
 - 📘 [CRX3 Format Spec](https://developer.chrome.com/docs/extensions/mv3/architecture-overview/)
 - 🤖 [Model Context Protocol](https://modelcontextprotocol.io)
 - 🐛 [Bug Reports & Issues](https://github.com/mmadfox/go-crx3/issues)
-- 💬 [Discussions](https://github.com/mmadfox/go-crx3/discussions)
 
 ---
 
