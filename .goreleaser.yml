@@ -1,25 +1,8 @@
-# yaml-language-server: $schema=https://goreleaser.com/static/schema-pro.json
+# yaml-language-server: $schema=https://goreleaser.com/static/schema.json
 # vim: set ts=2 sw=2 tw=0 fo=jcroql
 version: 2
 
 project_name: crx3
-
-metadata:
-  mod_timestamp: "{{ .CommitTimestamp }}"
-  license: "Apache-2.0"
-  homepage: "https://github.com/mmadfox/go-crx3"
-  description: "Chrome extension tooling: pack, unpack, download, and manage CRX3 extensions"
-  full_description: |
-    A comprehensive toolset for CRX3 Chrome extension management.
-    Pack, unpack, zip, unzip, download extensions from Chrome Web Store,
-    generate extension IDs, and integrate with AI via Model Context Protocol (MCP).
-  maintainers:
-    - "mmadfox <mmadfox@users.noreply.github.com>"
-
-nightly:
-  publish_release: true
-  keep_single_release: true
-  version_template: "{{ incminor .Version }}-nightly"
 
 snapshot:
   version_template: "0.0.0-{{ .Timestamp }}"
@@ -29,10 +12,10 @@ before:
     - go mod tidy
     - rm -rf completions manpages
     - mkdir -p completions manpages
-    - sh -c 'go run ./crx3 completion bash > ./completions/crx3.bash'
-    - sh -c 'go run ./crx3 completion zsh > ./completions/crx3.zsh'
-    - sh -c 'go run ./crx3 completion fish > ./completions/crx3.fish'
-    - sh -c 'go run ./crx3 man | gzip -c > ./manpages/crx3.1.gz 2>/dev/null || echo "man not supported"'
+    - sh -c 'go run ./crx3 completion bash > ./completions/crx3.bash 2>/dev/null || true'
+    - sh -c 'go run ./crx3 completion zsh > ./completions/crx3.zsh 2>/dev/null || true'
+    - sh -c 'go run ./crx3 completion fish > ./completions/crx3.fish 2>/dev/null || true'
+    - sh -c 'go run ./crx3 man | gzip -c > ./manpages/crx3.1.gz 2>/dev/null || true'
 
 builds:
   - id: crx3-cli
@@ -40,26 +23,13 @@ builds:
     binary: crx3
     env:
       - CGO_ENABLED=0
-      - GOEXPERIMENT=greenteagc
     goos:
       - linux
       - darwin
       - windows
-      - freebsd
-      - openbsd
-      - netbsd
     goarch:
       - amd64
       - arm64
-      - "386"
-      - arm
-    goarm:
-      - "7"
-    ignore:
-      - goos: windows
-        goarch: arm
-      - goos: darwin
-        goarch: "386"
     ldflags:
       - -s -w -X main.Version={{ .Version }}
     flags:
@@ -67,21 +37,22 @@ builds:
 
 archives:
   - id: crx3-archive
-    builds: [crx3-cli]
+    ids:
+      - crx3-cli
     name_template: >-
       crx3_
       {{- .Version }}_
       {{- title .Os }}_
       {{- if eq .Arch "amd64" }}x86_64
-      {{- else if eq .Arch "386" }}i386
+      {{- else if eq .Arch "arm64" }}arm64
       {{- else }}{{ .Arch }}{{ end }}
-      {{- with .Arm }}v{{ . }}{{ end }}
     wrap_in_directory: true
     files:
       - README*
       - LICENSE*
       - manpages/*
       - completions/*
+    formats: [tar.gz]
     format_overrides:
       - goos: windows
         formats: [zip]
@@ -89,71 +60,12 @@ archives:
 checksum:
   name_template: "checksums.txt"
 
-aur_sources:
-  - private_key: "{{ .Env.AUR_KEY }}"
-    disable: "{{ with .Prerelease }}true{{ end }}"
-    git_url: "ssh://aur@aur.archlinux.org/go-crx3.git"
-    commit_author:
-      name: "Sergey Liskonog"
-      email: "mmadfox@users.noreply.github.com"
-    makedepends:
-      - go
-      - git
-    prepare: |-
-      go mod download
-    build: |-
-      mkdir -p completions manpages
-      export CGO_ENABLED=0
-      export GOFLAGS="-buildmode=pie -trimpath -mod=readonly -modcacherw"
-      go build -ldflags="-w -s -buildid='' -X main.Version=v${pkgver}" -o crx3 ./crx3
-      ./crx3 completion bash > ./completions/crx3.bash
-      ./crx3 completion zsh > ./completions/crx3.zsh
-      ./crx3 completion fish > ./completions/crx3.fish
-    package: |-
-      # binary
-      install -Dm755 "./crx3" "${pkgdir}/usr/bin/crx3"
-      # license
-      install -Dm644 ./LICENSE "${pkgdir}/usr/share/licenses/go-crx3/LICENSE"
-      # completions
-      install -Dm644 "./completions/crx3.bash" "${pkgdir}/usr/share/bash-completion/completions/crx3"
-      install -Dm644 "./completions/crx3.zsh" "${pkgdir}/usr/share/zsh/site-functions/_crx3"
-      install -Dm644 "./completions/crx3.fish" "${pkgdir}/usr/share/fish/vendor_completions.d/crx3.fish"
-      # man pages (если есть)
-      [ -f "./manpages/crx3.1.gz" ] && install -Dm644 "./manpages/crx3.1.gz" "${pkgdir}/usr/share/man/man1/crx3.1.gz" || true
-      # readme
-      install -Dm644 README.md "${pkgdir}/usr/share/doc/go-crx3/README.md"
-
-aurs:
-  - private_key: "{{ .Env.AUR_KEY }}"
-    disable: "{{ with .Prerelease }}true{{ end }}"
-    git_url: "ssh://aur@aur.archlinux.org/go-crx3-bin.git"
-    commit_author:
-      name: "Sergey Liskonog"
-      email: "mmadfox@users.noreply.github.com"
-    provides:
-      - go-crx3
-    conflicts:
-      - go-crx3
-    package: |-
-      case "$CARCH" in
-        aarch64) cd "${srcdir}/crx3_${pkgver}_Linux_arm64" ;;
-        x86_64)  cd "${srcdir}/crx3_${pkgver}_Linux_x86_64" ;;
-        *)       cd "${srcdir}/crx3_${pkgver}_Linux_${CARCH}" ;;
-      esac
-      install -Dm755 "./crx3" "${pkgdir}/usr/bin/crx3"
-      install -Dm644 ./LICENSE "${pkgdir}/usr/share/licenses/go-crx3/LICENSE"
-      install -Dm644 "./completions/crx3.bash" "${pkgdir}/usr/share/bash-completion/completions/crx3"
-      install -Dm644 "./completions/crx3.zsh" "${pkgdir}/usr/share/zsh/site-functions/_crx3"
-      install -Dm644 "./completions/crx3.fish" "${pkgdir}/usr/share/fish/vendor_completions.d/crx3.fish"
-      [ -f "./manpages/crx3.1.gz" ] && install -Dm644 "./manpages/crx3.1.gz" "${pkgdir}/usr/share/man/man1/crx3.1.gz" || true
-      install -Dm644 README.md "${pkgdir}/usr/share/doc/go-crx3/README.md"
-
 brews:
   - repository:
       owner: mmadfox
       name: homebrew-tap
       token: "{{ .Env.HOMEBREW_TAP_GITHUB_TOKEN }}"
-    skip_upload: "{{ with .Prerelease }}true{{ end }}"
+    skip_upload: "{{ .Prerelease }}"
     commit_author:
       name: "Sergey Liskonog"
       email: "mmadfox@users.noreply.github.com"
@@ -168,20 +80,7 @@ brews:
       zsh_completion.install "completions/crx3.zsh" => "_crx3"
       fish_completion.install "completions/crx3.fish"
       man1.install "manpages/crx3.1.gz" if File.exist?("manpages/crx3.1.gz")
-
-scoops:
-  - repository:
-      owner: mmadfox
-      name: scoop-bucket
-      token: "{{ .Env.HOMEBREW_TAP_GITHUB_TOKEN }}"
-    skip_upload: "{{ with .Prerelease }}true{{ end }}"
-    commit_author:
-      name: "Sergey Liskonog"
-      email: "mmadfox@users.noreply.github.com"
-    homepage: "https://github.com/mmadfox/go-crx3"
-    description: "Chrome extension tooling"
-    license: "Apache-2.0"
-
+      
 nfpms:
   - id: crx3-packages
     package_name: go-crx3
@@ -190,154 +89,10 @@ nfpms:
       - apk
       - deb
       - rpm
-      - archlinux
     vendor: "mmadfox"
     homepage: "https://github.com/mmadfox/go-crx3"
     maintainer: "Sergey Liskonog <mmadfox@users.noreply.github.com>"
     description: "Chrome extension tooling: pack, unpack, download CRX3 extensions"
     license: "Apache-2.0"
-    contents:
-      - src: ./completions/crx3.bash
-        dst: /etc/bash_completion.d/crx3
-        file_info:
-          mode: 0644
-      - src: ./completions/crx3.fish
-        dst: /usr/share/fish/vendor_completions.d/crx3.fish
-        file_info:
-          mode: 0644
-      - src: ./completions/crx3.zsh
-        dst: /usr/share/zsh/site-functions/_crx3
-        file_info:
-          mode: 0644
-      - src: ./manpages/crx3.1.gz
-        dst: /usr/share/man/man1/crx3.1.gz
-        file_info:
-          mode: 0644
-    deb:
-      dependencies:
-        - bash-completion
-    rpm:
-      dependencies:
-        - bash-completion
-
-nix:
-  - repository:
-      owner: "mmadfox"
-      name: nur
-      token: "{{ .Env.HOMEBREW_TAP_GITHUB_TOKEN }}"
-    commit_author:
-      name: "Sergey Liskonog"
-      email: "mmadfox@users.noreply.github.com"
-    license: asl20
-    formatter: nixfmt
-    skip_upload: "{{ with .Prerelease }}true{{ end }}"
-    extra_install: |-
-      installManPage ./manpages/crx3.1.gz 2>/dev/null || true
-      installShellCompletion ./completions/*
-
-winget:
-  - publisher: mmadfox
-    publisher_url: https://github.com/mmadfox
-    publisher_support_url: https://github.com/mmadfox/go-crx3/issues
-    copyright: "Apache-2.0"
-    license: "Apache-2.0"
-    license_url: "https://github.com/mmadfox/go-crx3/blob/master/LICENSE"
-    release_notes_url: "https://github.com/mmadfox/go-crx3/releases/tag/{{ .Tag }}"
-    skip_upload: "{{ with .Prerelease }}true{{ end }}"
-    commit_author:
-      name: "Sergey Liskonog"
-      email: "mmadfox@users.noreply.github.com"
-    repository:
-      owner: "mmadfox"
-      name: winget-pkgs
-      token: "{{ .Env.HOMEBREW_TAP_GITHUB_TOKEN }}"
-      branch: "go-crx3-{{ .Version }}"
-      pull_request:
-        enabled: true
-        draft: false
-        base:
-          owner: microsoft
-          name: winget-pkgs
-          branch: master
-
-signs:
-  - cmd: cosign
-    signature: "${artifact}.sigstore.json"
-    args:
-      - sign-blob
-      - "--bundle=${signature}"
-      - "${artifact}"
-      - "--yes"
-    artifacts: checksum
-    output: true
-
-source:
-  enabled: true
-
-sboms:
-  - artifacts: archive
-  - id: source
-    artifacts: source
-
-changelog:
-  sort: asc
-  disable: "{{ .IsNightly }}"
-  use: github
-  filters:
-    exclude:
-      - "^chore:"
-      - "^ci:"
-      - "^test:"
-      - "^docs:"
-      - "merge conflict"
-      - "Merge pull request"
-      - "Merge branch"
-  groups:
-    - title: "🚀 Features"
-      regexp: "^.*feat[(\\w)]*:+.*$"
-      order: 100
-    - title: "🐛 Bug Fixes"
-      regexp: "^.*fix[(\\w)]*:+.*$"
-      order: 200
-    - title: "🔧 Maintenance"
-      regexp: "^.*chore[(\\w)]*:+.*$"
-      order: 300
-    - title: "📚 Documentation"
-      regexp: "^.*docs[(\\w)]*:+.*$"
-      order: 400
-    - title: "📦 Dependencies"
-      regexp: "^.*deps[(\\w)]*:+.*$"
-      order: 500
-    - title: "Other"
-      order: 9999
-
-release:
-  prerelease: auto
-  mode: replace
-  draft: false
-  footer: |
-    ## 📦 Installation
-    
-    ### Via Go
-    ```bash
-    go install github.com/mediabuyerbot/go-crx3/crx3@latest
-    ```
-    
-    ### Via Homebrew (macOS/Linux)
-    ```bash
-    brew install mmadfox/tap/crx3
-    ```
-    
-    ### Via AUR (Arch Linux)
-    ```bash
-    yay -S go-crx3
-    ```
-    
-    ### Via Scoop (Windows)
-    ```bash
-    scoop bucket add mmadfox https://github.com/mmadfox/scoop-bucket
-    scoop install crx3
-    ```
-    
-    ---
-    *Built with [GoReleaser](https://goreleaser.com)*
+    dependencies:
+      - bash-completion
