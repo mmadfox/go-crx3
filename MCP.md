@@ -1,6 +1,6 @@
-# AI Integration Guide for go-crx3-mcp
+# 🤖 AI Integration Guide for go-crx3-mcp
 
-> 🤖 **Model Context Protocol (MCP) integration for CRX3 Chrome extension tooling**
+> **Model Context Protocol (MCP) integration for CRX3 Chrome extension tooling**
 
 This document explains how to configure `crx3 mcp` with AI assistants like **Opencode**, **Crush**, **Claude Desktop**, and other MCP-compatible clients.
 
