@@ -1,4 +1,4 @@
-FROM golang:1.21 AS builder
+FROM golang:1.25 AS builder
 LABEL stage=builder
 WORKDIR /app
 COPY . .

@@ -42,7 +42,7 @@ func (e Extension) ID() (string, error) {
 		}
 		return IDFromPubKey([]byte(pubkey))
 	case e.IsZip():
-		pubkey, err := parseManifestFromZip(e.String())
+		pubkey, err := parsePubKeyFromZip(e.String())
 		if err != nil {
 			return "", err
 		}
@@ -51,7 +51,7 @@ func (e Extension) ID() (string, error) {
 		}
 		return IDFromPubKey([]byte(pubkey))
 	case e.IsCRX3():
-		pubkey, err := parseManifestFromZip(e.String())
+		pubkey, err := parsePubKeyFromZip(e.String())
 		if err != nil || len(pubkey) == 0 {
 			return ID(e.String())
 		}
@@ -213,7 +213,7 @@ func manifestFile(path string) string {
 	return filepath.Join(path, "manifest.json")
 }
 
-func parseManifestFromZip(e string) (string, error) {
+func parsePubKeyFromZip(e string) (string, error) {
 	zipReader, err := zip.OpenReader(e)
 	if err != nil {
 		return "", fmt.Errorf("crx3: failed to open zip reader: %w", err)

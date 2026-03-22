@@ -44,14 +44,7 @@ func ID(filename string) (id string, err error) {
 		return id, err
 	}
 
-	idx := strIDx()
-	sid := fmt.Sprintf("%x", signedData.CrxId[:16])
-	buf := bytes.NewBuffer(nil)
-	for _, char := range sid {
-		index := idx[char]
-		buf.WriteString(string(symbols[index]))
-	}
-	return buf.String(), nil
+	return string(makeExtensionID(signedData.CrxId)), nil
 }
 
 // IDFromPubKey generates the Chrome Extension ID from a public key.
@@ -84,15 +77,7 @@ func IDFromPubKey(pubKey []byte) (string, error) {
 	hash.Write(pubKeyBytes)
 	digest := hash.Sum(nil)
 
-	idx := strIDx()
-	sid := fmt.Sprintf("%x", digest[:16])
-	buf := bytes.NewBuffer(nil)
-	for _, char := range sid {
-		index := idx[char]
-		buf.WriteString(string(symbols[index]))
-	}
-
-	return buf.String(), nil
+	return string(makeExtensionID(digest)), nil
 }
 
 func strIDx() map[rune]int {
