@@ -111,11 +111,15 @@ $ crx3 mcp  # starts over stdio`,
 
 func validateAndNormalizeWorkdir(workdir string) (string, error) {
 	if workdir == "" {
-		pwd, err := os.Getwd()
+		home, err := os.UserHomeDir()
 		if err != nil {
-			return "", fmt.Errorf("failed to get current directory: %w", err)
+			return "", fmt.Errorf("failed to get home directory: %w", err)
 		}
-		workdir = pwd
+		defaultCrx3Path := filepath.Join(home, "crx3_extensions")
+		if err := os.MkdirAll(defaultCrx3Path, 0755); err != nil {
+			return "", fmt.Errorf("failed to create default crx3_extensions directory: %w", err)
+		}
+		workdir = defaultCrx3Path
 	}
 
 	if strings.HasPrefix(workdir, "~/") || workdir == "~" {
