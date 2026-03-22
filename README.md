@@ -1,4 +1,4 @@
-# go-crx3-mcp
+# crx3
 
 [![Coverage Status](https://coveralls.io/repos/github/mmadfox/go-crx3/badge.svg?branch=master)](https://coveralls.io/github/mmadfox/go-crx3?branch=master)
 [![Documentation](https://godoc.org/github.com/mediabuyerbot/go-crx3?status.svg)](https://pkg.go.dev/github.com/mediabuyerbot/go-crx3)
