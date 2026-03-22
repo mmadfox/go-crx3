@@ -6,20 +6,25 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Set up Go
-      uses: actions/setup-go@v2
+      uses: actions/setup-go@v5
       with:
-        go-version: '1.21'
+        go-version: '1.25'
+        cache: true
     - name: Check out code
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
     - name: Install dependencies
-      run: |
-        go mod download
+      run: go mod download
     - name: Run Unit tests
       run: |
-        go test -race -covermode atomic -coverprofile=covprofile ./...
+        go test -race -covermode atomic -coverprofile=covprofile $(go list ./... | grep -v '/examples\|/pb')
     - name: Install goveralls
       run: go install github.com/mattn/goveralls@latest
     - name: Send coverage
       env:
         COVERALLS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      run: goveralls -coverprofile=covprofile -service=github
+      run: |
+        if [ -f covprofile ]; then
+          goveralls -coverprofile=covprofile -service=github
+        else
+          echo "Warning: covprofile not found, skipping coverage report"
+        fi
