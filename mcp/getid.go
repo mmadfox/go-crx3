@@ -4,6 +4,7 @@ import (
 	"context"
 	_ "embed"
 	"fmt"
+	"path/filepath"
 
 	sdkmcp "github.com/modelcontextprotocol/go-sdk/mcp"
 )
@@ -23,12 +24,20 @@ type getidResult struct {
 }
 
 func (h *handler) getidHandler(ctx context.Context, _ *sdkmcp.CallToolRequest, params getidParams) (*sdkmcp.CallToolResult, any, error) {
+	if filepath.IsAbs(params.Filepath) {
+		rel, err := filepath.Rel(h.opts.WorkDir, params.Filepath)
+		if err != nil {
+			return nil, nil, fmt.Errorf("failed to get relative path: %w", err)
+		}
+		params.Filepath = rel
+	}
+
 	extensionFilepath, err := h.opts.joinPath(params.Filepath)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to join path: %w", err)
 	}
 	if !isFile(extensionFilepath) && !isDir(extensionFilepath) {
-		return nil, nil, fmt.Errorf("extension not found %q", params.Filepath)
+		return nil, nil, fmt.Errorf("extension not found %q`", params.Filepath)
 	}
 
 	id, err := h.svc.GetID(extensionFilepath)

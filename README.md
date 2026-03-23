@@ -41,7 +41,7 @@ Automate CRX3 operations through natural language commands powered by AI.
 # Start MCP server (stdio mode for local AI clients)
 crx3 mcp
 
-# Or run over HTTP for remote clients
+# Or run over HTTP for remote clients (Work in progress)
 crx3 mcp --listen=:3000
 ```
 
@@ -60,8 +60,7 @@ crx3 mcp --listen=:3000
 | `crx3 zip` | Create `.zip` archive from directory |
 | `crx3 unzip` | Extract `.zip` archive contents |
 | `crx3 base64` | Encode file to Base64 string |
-| `crx3 id` | Extract Chrome Extension ID from `.crx` or directory |
-| `crx3 keygen` | Generate new RSA private key for signing |
+| `crx3 getid` | Extract Chrome Extension ID from `.crx` or directory |
 | `crx3 scan` | List/filter downloaded extensions in workspace |
 | `crx3 workspace` | Get absolute path to workspace root |
 | `crx3 version` | Show CRX3 tool version |
@@ -115,16 +114,22 @@ crx3 pack ./my-extension -p ./keys/private.pem -o ./build/extension.crx3
 ### Unpack and inspect
 ```bash
 # Extract CRX3 to directory
-crx3 unpack ./extension.crx3 -o ./extracted
+crx3 unpack ./extension.crx3 -o ./extracted 
 
 # View manifest
 cat ./extracted/manifest.json
+
+# Without creating a subdirectory 
+crx3 unpack ./extension.crx3 -o ./extracted -s
 ```
 
 ### Download from Chrome Web Store
 ```bash
 # By extension ID
-crx3 download blipmdconlkpinefehnmjammfjpmpbjk -o ./extensions/lighthouse.crx3
+crx3 download blipmdconlkpinefehnmjammfjpmpbjk -o ./extensions/lighthouse
+
+# Wihtout auto unpack
+crx3 download blipmdconlkpinefehnmjammfjpmpbjk --unpack=false
 
 # By full URL
 crx3 download "https://chrome.google.com/webstore/detail/lighthouse/blipmdconlkpinefehnmjammfjpmpbjk"
@@ -169,10 +174,7 @@ crx3 base64 ./extension.crx3 -o ./encoded.txt
 ### Search Chrome Web Store
 ```bash
 # Search by keyword
-crx3 search "ad blocker" --limit 5
-
-# Filter by rating
-crx3 search "password manager" --min-rating 4.5
+crx3 search "ad blocker" 
 ```
 
 ---
@@ -283,7 +285,7 @@ fmt.Println(string(b))
 # Run MCP with restricted tools and sandboxed directory
 crx3 mcp \
   --workdir=/safe/extensions \
-  --tools.disabled=download_extension,unpack_extension \
+  --tools.disabled=crx3_download,crx3_unpack \
   --logfile=/var/log/crx3-mcp.log
 ```
 
