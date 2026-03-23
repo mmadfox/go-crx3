@@ -1,6 +1,39 @@
 # CRX3 MCP Server — Complete Tool Instructions
 
 ===============================================================================
+WORKSPACE ISOLATION
+===============================================================================
+✅ All CRX3 tools operate ONLY within the configured workspace directory.
+✅ All file paths passed to tool parameters MUST be RELATIVE to the workspace root.
+✅ NEVER pass absolute paths to any CRX3 tool:
+   ❌ "/home/user/project/ext.crx"
+   ❌ "C:\Users\name\extensions\app.crx"
+   ✅ "./extensions/app.crx"
+   ✅ "./unpacked/my-extension/"
+
+[PATH FORMAT FOR TOOL INPUTS]
+✅ Always use forward slashes: `./dir/file.ext`
+✅ Start paths with `./` or `../` (relative to workspace root)
+✅ Do NOT use environment variables, tilde `~`, or OS-specific absolute paths
+
+[PATH FORMAT FOR USER DISPLAY]
+✅ For user communication, you MAY and SHOULD show absolute paths
+✅ Use the `crx3_workspace` tool to retrieve the absolute workspace root
+✅ Response format to user: 
+   "File saved at: {ABSOLUTE_PATH_FROM_WORKSPACE_TOOL}/{relative_path}"
+
+[VALIDATION CHECKLIST BEFORE TOOL CALL]
+□ Does the path start with `./` or `../`?
+□ Does the path avoid forbidden characters: `:`, `|`, `<`, `>`, `*`, `?`, `\` (except `/`)?
+□ Is the path NOT absolute (not starting with `/` or `C:\`)?
+□ If the path contains Cyrillic/special characters, am I prepared for automatic sanitization?
+
+[ERROR PREVENTION]
+❌ If path is absolute → DO NOT call the tool; correct the path first
+❌ If file not found → first call `crx3_scan` or `crx3_workspace` for diagnostics
+❌ If user requests an absolute path for tool input → explain the rule, offer `crx3_workspace` for conversion
+
+===============================================================================
 TOOLS OVERVIEW
 ===============================================================================
 

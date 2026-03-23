@@ -31,6 +31,22 @@ type unpackResult struct {
 }
 
 func (h *handler) unpackHandler(ctx context.Context, _ *sdkmcp.CallToolRequest, params unpackParams) (*sdkmcp.CallToolResult, any, error) {
+	if filepath.IsAbs(params.Filepath) {
+		rel, err := filepath.Rel(h.opts.WorkDir, params.Filepath)
+		if err != nil {
+			return nil, nil, fmt.Errorf("failed to get relative path: %w", err)
+		}
+		params.Filepath = rel
+	}
+
+	if len(params.OutputDir) > 0 && filepath.IsAbs(params.OutputDir) {
+		rel, err := filepath.Rel(h.opts.WorkDir, params.OutputDir)
+		if err != nil {
+			return nil, nil, fmt.Errorf("failed to get relative path: %w", err)
+		}
+		params.OutputDir = rel
+	}
+
 	extensionFilepath, err := h.opts.joinPath(params.Filepath)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to join path: %w", err)

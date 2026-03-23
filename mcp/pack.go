@@ -39,6 +39,30 @@ func (h *handler) packHandler(ctx context.Context, _ *sdkmcp.CallToolRequest, pa
 		return nil, nil, fmt.Errorf("source path is required")
 	}
 
+	if filepath.IsAbs(params.Source) {
+		rel, err := filepath.Rel(h.opts.WorkDir, params.Source)
+		if err != nil {
+			return nil, nil, fmt.Errorf("failed to get relative path: %w", err)
+		}
+		params.Source = rel
+	}
+
+	if len(params.OutputDir) > 0 && filepath.IsAbs(params.OutputDir) {
+		rel, err := filepath.Rel(h.opts.WorkDir, params.OutputDir)
+		if err != nil {
+			return nil, nil, fmt.Errorf("failed to get relative path: %w", err)
+		}
+		params.OutputDir = rel
+	}
+
+	if len(params.OutputDir) > 0 && filepath.IsAbs(params.OutputDir) {
+		rel, err := filepath.Rel(h.opts.WorkDir, params.OutputDir)
+		if err != nil {
+			return nil, nil, fmt.Errorf("failed to get relative path: %w", err)
+		}
+		params.OutputDir = rel
+	}
+
 	sourcePath, err := h.opts.joinPath(params.Source)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to join source path: %w", err)
