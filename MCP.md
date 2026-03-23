@@ -57,10 +57,7 @@ Tool                | Purpose
 ---
 
 ## ✅ Prerequisites
-1. **Install `crx3 mcp`**:
-   ```bash
-   go install github.com/mediabuyerbot/go-crx3-mcp@latest
-   ```
+1. **Install `crx3 mcp`**: [Guide](./README.md#-installation) 
 
 2. **Verify installation**:
    ```bash

@@ -3,6 +3,7 @@ package mcp
 import (
 	"context"
 	_ "embed"
+	"fmt"
 	"path/filepath"
 	"strings"
 
@@ -15,14 +16,25 @@ var (
 	workspaceTitle       = "Get the workspace directory where Chrome extensions are stored"
 )
 
+type workspaceResult struct {
+	Filepath string `json:"filepath" jsonschema:"required, path to the workspace directory"`
+}
+
 func (h *handler) workspaceHandler(ctx context.Context, _ *sdkmcp.CallToolRequest, _ any) (*sdkmcp.CallToolResult, any, error) {
-	return &sdkmcp.CallToolResult{
-		StructuredContent: struct {
-			Path string `json:"path"`
-		}{
-			Path: h.opts.WorkDir,
+	resp := &sdkmcp.CallToolResult{
+		StructuredContent: workspaceResult{
+			Filepath: h.opts.WorkDir,
 		},
-	}, nil, nil
+	}
+
+	if !h.opts.DisabledMarkdown {
+		text := fmt.Sprintf("The workspace directory %s", h.opts.WorkDir)
+		resp.Content = []sdkmcp.Content{
+			&sdkmcp.TextContent{Text: text},
+		}
+	}
+
+	return resp, nil, nil
 }
 
 func (opts *Options) joinPath(otherPath string) (string, error) {
