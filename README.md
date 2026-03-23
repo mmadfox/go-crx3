@@ -73,7 +73,18 @@ crx3 mcp --listen=:3000
 
 ## 📦 Installation
 
-### Via Go (recommended)
+### Via Homebrew (macOS/Linux)
+```bash
+brew tap mmadfox/tap https://github.com/mmadfox/homebrew-tap
+brew install mmadfox/tap/crx3
+```
+
+### Via install.sh (Linux/macOS)
+```bash
+curl -sSfL https://raw.githubusercontent.com/mmadfox/go-crx3/main/install.sh | bash -s
+```
+
+### Via Go
 ```bash
 go install github.com/mediabuyerbot/go-crx3/crx3@latest
 ```
@@ -81,10 +92,7 @@ go install github.com/mediabuyerbot/go-crx3/crx3@latest
 ### Via Release Binary
 Download pre-built binaries from [Releases](https://github.com/mmadfox/go-crx3/releases).
 
-### Via Docker
-```bash
-docker pull mediabuyerbot/go-crx3:latest
-docker run --rm -v "$PWD:$PWD" -w "$PWD" mediabuyerbot/go-crx3:latest pack ./ext -o ./ext.crx3
+
 ```
 
 ### Verify Installation

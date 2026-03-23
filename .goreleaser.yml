@@ -27,9 +27,27 @@ builds:
       - linux
       - darwin
       - windows
+      - freebsd
+      - openbsd
+      - android
     goarch:
       - amd64
       - arm64
+      - "386"
+      - arm
+    goarm:
+      - "7"
+    ignore:
+      - goos: android
+        goarch: amd64
+      - goos: android
+        goarch: arm
+      - goos: android
+        goarch: "386"
+      - goos: windows
+        goarch: arm
+      - goos: darwin
+        goarch: "386"
     ldflags:
       - -s -w -X main.Version={{ .Version }}
     flags:
@@ -80,7 +98,7 @@ brews:
       zsh_completion.install "completions/crx3.zsh" => "_crx3"
       fish_completion.install "completions/crx3.fish"
       man1.install "manpages/crx3.1.gz" if File.exist?("manpages/crx3.1.gz")
-      
+
 nfpms:
   - id: crx3-packages
     package_name: go-crx3

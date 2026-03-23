@@ -7,8 +7,7 @@ import (
 	"github.com/mediabuyerbot/go-crx3/crx3/commands"
 )
 
-// TODO: add to ci VERSION=$(git describe --tags --always) ... -ldflags "-X main.Version=$VERSION"
-var Version = "v1.6.0"
+var Version = "v1.7.0"
 
 func main() {
 	cli := commands.New(Version)
