@@ -81,7 +81,7 @@ brew install mmadfox/tap/crx3
 
 ### Via install.sh (Linux/macOS)
 ```bash
-curl -sSfL https://raw.githubusercontent.com/mmadfox/go-crx3/main/install.sh | bash -s
+curl -sSfL https://raw.githubusercontent.com/mmadfox/go-crx3/master/install.sh | bash -s
 ```
 
 ### Via Go
@@ -92,8 +92,6 @@ go install github.com/mediabuyerbot/go-crx3/crx3@latest
 ### Via Release Binary
 Download pre-built binaries from [Releases](https://github.com/mmadfox/go-crx3/releases).
 
-
-```
 
 ### Verify Installation
 ```bash
