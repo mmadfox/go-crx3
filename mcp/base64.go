@@ -4,6 +4,7 @@ import (
 	"context"
 	_ "embed"
 	"fmt"
+	"path/filepath"
 
 	sdkmcp "github.com/modelcontextprotocol/go-sdk/mcp"
 )
@@ -23,6 +24,14 @@ type base64Result struct {
 }
 
 func (h *handler) base64Handler(ctx context.Context, _ *sdkmcp.CallToolRequest, params base64Params) (*sdkmcp.CallToolResult, any, error) {
+	if filepath.IsAbs(params.Filepath) {
+		rel, err := filepath.Rel(h.opts.WorkDir, params.Filepath)
+		if err != nil {
+			return nil, nil, fmt.Errorf("failed to get relative path: %w", err)
+		}
+		params.Filepath = rel
+	}
+
 	extensionFilepath, err := h.opts.joinPath(params.Filepath)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to join path: %w", err)

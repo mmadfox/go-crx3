@@ -54,11 +54,11 @@ func (impl) Base64(filename string) ([]byte, error) {
 }
 
 func (impl) UnzipTo(filename string, dirname string) error {
-	return crx3.UnzipTo(filename, dirname)
+	return crx3.UnzipTo(dirname, filename)
 }
 
 func (impl) ZipTo(source string, dest string) error {
-	return crx3.ZipTo(source, dest)
+	return crx3.ZipTo(dest, source)
 }
 
 func (s impl) Version() string {

@@ -1,6 +1,42 @@
 # CRX3 MCP Server — Complete Tool Instructions
 
 ===============================================================================
+SESSION INITIALIZATION PROTOCOL — ALWAYS START WITH WORKSPACE
+===============================================================================
+✅ IMMEDIATELY upon session start (first user message), BEFORE answering any file-related questions:
+   1. Call `crx3_workspace {}` automatically — no user prompt needed
+   2. Cache the returned `absoluteRootPath` in session memory
+   3. Confirm to user (optional but recommended): 
+      "Workspace initialized at: {absoluteRootPath}"
+
+✅ This cached workspace root is used for:
+   • Resolving all relative paths: `"./file.crx"` → `{cached_root}/file.crx`
+   • Constructing absolute paths for user display
+   • Validating that tool inputs are workspace-relative
+   • Debugging "file not found" errors
+
+✅ If `crx3_workspace` fails or returns unexpected result:
+   → Halt file operations
+   → Inform user: "⚠️ Unable to determine workspace root. Please check server configuration."
+   → Do NOT proceed with unpack/download/pack until workspace is confirmed
+
+[SESSION LIFECYCLE — WORKSPACE AWARENESS]
+| Phase              | Action                                                                 |
+|--------------------|------------------------------------------------------------------------|
+| Session Start      | Auto-call `crx3_workspace {}` → cache `absoluteRootPath`              |
+| During Session     | Use cached root for all path resolution; never re-call unless error   |
+| Path Validation    | All tool inputs: must start with `./` and resolve within cached root  |
+| User Display       | Format paths as: `{cached_root}/{relative_path}`                      |
+| Error Recovery     | If file not found: re-call `crx3_workspace` to verify root unchanged  |
+| Session End        | Clear cached workspace path (optional, depends on implementation)     |
+
+[WHY THIS MATTERS — COMMON FAILURE SCENARIOS PREVENTED]
+❌ Without initialization:
+   • User: "Unpack ./ext.crx"
+   • LLM: Doesn't know workspace root → guesses or assumes current dir → tool error
+   • Result: Retry loop, confused user, wasted tokens
+
+===============================================================================
 WORKSPACE ISOLATION
 ===============================================================================
 ✅ All CRX3 tools operate ONLY within the configured workspace directory.
@@ -32,6 +68,29 @@ WORKSPACE ISOLATION
 ❌ If path is absolute → DO NOT call the tool; correct the path first
 ❌ If file not found → first call `crx3_scan` or `crx3_workspace` for diagnostics
 ❌ If user requests an absolute path for tool input → explain the rule, offer `crx3_workspace` for conversion
+
+===============================================================================
+CRITICAL RULE TO PREVENT PATH RESOLUTION ERRORS AND REDUNDANT TOOL CALLS
+===============================================================================
+[WORKSPACE AS ABSOLUTE ROOT — NON-NEGOTIABLE]
+✅ The workspace root (returned by `crx3_workspace`) is the ONLY reference point for all file operations.
+✅ NEVER assume "current directory", working directory, or caller context — they are irrelevant to CRX3 tools.
+✅ Every relative path like `"./extensions/file.crx"` is resolved as `{workspace_root}/extensions/file.crx`.
+✅ If you are unsure where a file is, ALWAYS start with `crx3_workspace` or `crx3_scan` — never guess.
+
+[FILE NOT FOUND — DIAGNOSTIC PROTOCOL]
+If a tool returns "file not found", "path does not exist", or similar error:
+
+1️⃣ STOP — do NOT retry with the same path
+2️⃣ CALL `crx3_workspace {}` to confirm the absolute root path
+3️⃣ CALL `crx3_scan` with appropriate filters to locate the file:
+   • By name: `{"filter": ["filename", "extensionId"]}`
+   • Broad scan: `{}` to list all .crx files
+4️⃣ Use the `filepath` returned by `crx3_scan` directly — it is already workspace-relative and valid
+5️⃣ If `crx3_scan` returns no results:
+   → Inform user the file is not in workspace
+   → Offer to download it via `crx3_search` + `crx3_download`
+   → Or ask user to place it inside workspace and rescan
 
 ===============================================================================
 TOOLS OVERVIEW
@@ -429,39 +488,3 @@ Error Scenario              | Suggested Action
 Multiple search results     | Present options to user; ask for explicit selection
 
 ---
-
-CROSS-PLATFORM COMPATIBILITY:
-
-- Path sanitization: Cyrillic/special chars auto-converted to safe equivalents
-- Always inform user when path/name was modified due to sanitization
-- Use crx3_workspace to confirm actual filesystem paths when debugging
-- Test workflows on target OS if distributing extensions cross-platform
-
-===============================================================================
-TROUBLESHOOTING FAQ
-===============================================================================
-
-Q: Where are my downloaded files saved?
-A: Call crx3_workspace to get absolute root, then files are at {root}/{relative-path}.
-   Default download path: ./extensions/{extensionId}.crx
-
-Q: How do I keep the same extension ID when repacking?
-A: Save the .pem private key from first pack, then pass it via privateKey parameter
-   in subsequent crx3_pack calls. Same key + manifest = same ID.
-
-Q: crx3_unpack failed — what now?
-A: 1) Verify filepath exists via crx3_scan
-   2) Ensure path is workspace-relative
-   3) Check file is valid .crx (not corrupted or wrong format)
-
-Q: Can I use absolute paths if I really need to?
-A: No. CRX3 tools enforce workspace-relative paths for security and portability.
-   Use crx3_workspace to get absolute path for external tool integration only.
-
-Q: My Russian directory name was changed — why?
-A: Tool sanitizes paths for cross-OS compatibility. Invalid chars converted to '_'.
-   Use Latin characters, numbers, hyphens, underscores for best results.
-
-Q: How do I find which .crx file corresponds to which extension?
-A: Use crx3_scan with filter or crx3_getid on each candidate to match extensionId
-   with known values.
