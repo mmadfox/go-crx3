@@ -18,20 +18,32 @@ before:
     - sh -c 'go run ./crx3 man | gzip -c > ./manpages/crx3.1.gz 2>/dev/null || true'
 
 builds:
-  - id: crx3-cli
-    main: ./crx3
-    binary: crx3
-    env:
+  - env:
       - CGO_ENABLED=0
     goos:
       - linux
       - darwin
       - windows
+      - freebsd
+      - openbsd
+      - netbsd
+      - android
     goarch:
       - amd64
       - arm64
-    ldflags:
-      - -s -w -X main.Version={{ .Version }}
+      - "386"
+      - arm
+    goarm:
+      - "7"
+    ignore:
+      - goos: android
+        goarch: amd64
+      - goos: android
+        goarch: arm
+      - goos: android
+        goarch: "386"
+      - goos: windows
+        goarch: arm
     flags:
       - -trimpath
 
@@ -80,7 +92,7 @@ brews:
       zsh_completion.install "completions/crx3.zsh" => "_crx3"
       fish_completion.install "completions/crx3.fish"
       man1.install "manpages/crx3.1.gz" if File.exist?("manpages/crx3.1.gz")
-      
+
 nfpms:
   - id: crx3-packages
     package_name: go-crx3

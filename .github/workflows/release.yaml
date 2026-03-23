@@ -3,7 +3,11 @@ name: Release Go project
 on:
   push:
     tags:
-      - v*
+      - v*.*.*
+
+concurrency:
+  group: goreleaser
+  cancel-in-progress: true
 
 permissions:
   contents: write
