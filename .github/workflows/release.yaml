@@ -36,7 +36,7 @@ jobs:
           args: release --clean
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          HOMEBREW_TAP_GITHUB_TOKEN: ${{ secrets.HOMEBREW_TAP_GITHUB_TOKEN }}
           CGO_ENABLED: 0
-          # HOMEBREW_TAP_GITHUB_TOKEN: ${{ secrets.HOMEBREW_TAP_TOKEN }}
           # AUR_KEY: ${{ secrets.AUR_SSH_KEY }}
           # FURY_TOKEN: ${{ secrets.FURY_TOKEN }}
