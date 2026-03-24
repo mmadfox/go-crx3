@@ -41,8 +41,9 @@ Automate CRX3 operations through natural language commands powered by AI.
 # Start MCP server (stdio mode for local AI clients)
 crx3 mcp
 
-# Or run over HTTP for remote clients (Work in progress)
-crx3 mcp --listen=:3000
+# Or run over HTTP/SSE for remote clients 
+crx3 mcp --listen=locahost:3000
+crx3 mcp --listen=localhost:3000 --sse 
 ```
 
 📖 See **[MCP.md](./MCP.md)** for detailed setup instructions.

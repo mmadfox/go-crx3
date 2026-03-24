@@ -6,8 +6,12 @@ import (
 	_ "embed"
 	"html/template"
 	"io"
+	"log"
+	"net/http"
 	"strings"
+	"time"
 
+	"github.com/modelcontextprotocol/go-sdk/mcp"
 	sdkmcp "github.com/modelcontextprotocol/go-sdk/mcp"
 )
 
@@ -25,6 +29,8 @@ const (
 	versionToolName   = "version"
 )
 
+const crx3ID = "crx3"
+
 type ToolInfo struct {
 	Name        string `json:"name"`
 	Title       string `json:"title"`
@@ -39,6 +45,8 @@ func MakeAllTools(opts *Options) []ToolInfo {
 	tools := make([]ToolInfo, 0)
 	isNotDisabledTool := func(name string) bool {
 		for _, t := range opts.DisabledTools {
+			t = strings.TrimSpace(t)
+			t = strings.TrimPrefix(t, "crx3_")
 			if t == name {
 				return false
 			}
@@ -153,8 +161,27 @@ type handler struct {
 	svc  crx3service
 }
 
-func ServeHTTP(ctx context.Context, addr string) error {
-	return nil
+func ServeHTTP(
+	ctx context.Context,
+	addr string,
+	tools []ToolInfo,
+	opts Options,
+	isSSE bool,
+) error {
+	mcpServer := makeMCPServer(tools, &opts)
+	mcpServer.AddReceivingMiddleware(makeLoggingMiddleware())
+
+	getServer := func(req *http.Request) *mcp.Server {
+		return mcpServer
+	}
+	var handler http.Handler
+	if isSSE {
+		handler = mcp.NewSSEHandler(getServer, nil)
+	} else {
+		handler = mcp.NewStreamableHTTPHandler(getServer, nil)
+	}
+
+	return http.ListenAndServe(addr, handler)
 }
 
 func ServeStdIO(
@@ -162,29 +189,36 @@ func ServeStdIO(
 	tools []ToolInfo,
 	opts Options,
 ) error {
-	// TODO:
-	// var mcpTransport sdkmcp.Transport
-	// if opts.Logger != nil {
-	// 	mcpTransport = &sdkmcp.LoggingTransport{
-	// 		Transport: &sdkmcp.StdioTransport{},
-	// 		Writer:    opts.Logger,
-	// 	}
-	// } else {
-	// 	mcpTransport = &sdkmcp.StdioTransport{}
-	// }
+	var mcpTransport sdkmcp.Transport
+	if opts.Logger != nil {
+		mcpTransport = &sdkmcp.LoggingTransport{
+			Transport: &sdkmcp.StdioTransport{},
+			Writer:    opts.Logger,
+		}
+	} else {
+		mcpTransport = &sdkmcp.StdioTransport{}
+	}
 
+	mcpServer := makeMCPServer(tools, &opts)
+	mcpServer.AddReceivingMiddleware(makeLoggingMiddleware())
+
+	return mcpServer.Run(ctx, mcpTransport)
+}
+
+func makeMCPServer(tools []ToolInfo, opts *Options) *sdkmcp.Server {
 	srvOpts := &sdkmcp.ServerOptions{
 		Instructions: Instruction,
 	}
+
 	mcpServer := sdkmcp.NewServer(&sdkmcp.Implementation{
-		Name:    "crx3",
+		Name:    crx3ID,
 		Version: opts.Version,
 	}, srvOpts)
 
-	h := &handler{opts: &opts, svc: impl{}}
+	h := &handler{opts: opts, svc: impl{}}
 	makeTools(mcpServer, h, tools)
 
-	return mcpServer.Run(ctx, &sdkmcp.StdioTransport{})
+	return mcpServer
 }
 
 func makeTools(mcpServer *sdkmcp.Server, h *handler, tools []ToolInfo) {
@@ -286,4 +320,40 @@ func makeDescription(data tplContext, name string, description string) string {
 		panic(err)
 	}
 	return strings.TrimSpace(buf.String())
+}
+
+func makeLoggingMiddleware() mcp.Middleware {
+	return func(next mcp.MethodHandler) mcp.MethodHandler {
+		return func(
+			ctx context.Context,
+			method string,
+			req mcp.Request,
+		) (mcp.Result, error) {
+			start := time.Now()
+			sessionID := req.GetSession().ID()
+
+			log.Printf("[REQUEST] Session: %s | Method: %s",
+				sessionID,
+				method)
+
+			result, err := next(ctx, method, req)
+
+			duration := time.Since(start)
+
+			if err != nil {
+				log.Printf("[RESPONSE] Session: %s | Method: %s | Status: ERROR | Duration: %v | Error: %v",
+					sessionID,
+					method,
+					duration,
+					err)
+			} else {
+				log.Printf("[RESPONSE] Session: %s | Method: %s | Status: OK | Duration: %v",
+					sessionID,
+					method,
+					duration)
+			}
+
+			return result, err
+		}
+	}
 }
