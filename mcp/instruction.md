@@ -186,7 +186,7 @@ WHEN TO USE:
 
 PARAMETERS:
 - filepath (required): Path to .crx file (workspace-relative)
-- outputDir (optional): Target directory for extracted contents (workspace-relative, default: ./unpacked/{extensionId}/)
+- outputDir (optional): Target directory for extracted contents (workspace-relative)
 
 PATH NAMING RULES:
 - Allowed: letters (a-z, A-Z, Cyrillic), numbers, hyphens (-), underscores (_), forward slashes (/)
@@ -199,6 +199,18 @@ CRITICAL RULES:
 - Tool auto-creates outputDir if it doesn't exist
 - If outputDir name contains Russian/special chars, tool sanitizes — inform user
 - After unpack, cache outputDir for future pack/modify operations
+- Do NOT manually create the output directory before unpacking.
+- Do NOT pass the `outputDir` parameter unless the user explicitly requests a specific location.
+- If `outputDir` is needed: Specify ONLY the parent folder (e.g., "./audit/"), do NOT include the extension name or ID.
+- Paths: Relative only (must start with "./"), use forward slashes ("/"). Absolute paths are forbidden.
+
+Why this matters:
+❌ Error: outputDir: "./unpacked/ext-id/" → Tool creates the directory + nests extracted contents inside another folder → Double nesting / incorrect structure.
+✅ Correct: outputDir omitted → Tool automatically creates "./unpacked/{extensionId}/" with proper structure.
+// ✅ Allowed (parent folder only)
+{"filepath": "./ext/metamask.crx", "outputDir": "./audit/"}
+// ❌ FORBIDDEN (causes double nesting)
+{"filepath": "./ext.crx", "outputDir": "./unpacked/ext-id/"}
 
 EXAMPLES:
 {"filepath": "./extensions/abc123.crx"}
