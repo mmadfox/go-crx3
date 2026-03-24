@@ -204,8 +204,8 @@ WHEN TO USE:
 - After download to verify contents
 
 PARAMETERS:
-- filepath (required): Path to .crx file (workspace-relative)
-- outputDir (optional): Target directory for extracted contents (workspace-relative)
+- filepath (required): Path to .crx file (workspace-relative) call `crx3_workspace`
+- outputDir (optional): Target directory for extracted contents (workspace-relative) call `crx3_workspace`
 
 PATH NAMING RULES:
 - Allowed: letters (a-z, A-Z, Cyrillic), numbers, hyphens (-), underscores (_), forward slashes (/)
@@ -214,7 +214,7 @@ PATH NAMING RULES:
 - Always use forward slashes (/), relative to workspace root
 
 CRITICAL RULES:
-- All paths must be workspace-relative — never absolute
+- All paths must be workspace-relative — never absolute call `crx3_workspace`
 - Tool auto-creates outputDir if it doesn't exist
 - If outputDir name contains Russian/special chars, tool sanitizes — inform user
 - After unpack, cache outputDir for future pack/modify operations

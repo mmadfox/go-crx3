@@ -9,5 +9,4 @@ Use this tool when the user wants to get the Chrome extension ID. The tool reads
 <example>
 - "Get the extension ID for the downloaded extension"
 - "What is the ID of the extension in ./extensions/abc123.crx"
-- "Get extension ID from unpacked extension in ./unpacked/react-devtools/"
 </example>
