@@ -17,8 +17,7 @@ func UnzipTo(basepath string, filename string) error {
 	}
 
 	if !isDir(basepath) {
-		return fmt.Errorf("%w: does not exists %s",
-			ErrPathNotFound, basepath)
+		return fmt.Errorf("%w: does not exists %s", ErrPathNotFound, basepath)
 	}
 
 	file, err := os.Open(filename)
@@ -43,11 +42,13 @@ func Unzip(r io.ReaderAt, size int64, unpacked string) error {
 	if err != nil {
 		return err
 	}
+
 	if _, err := os.Stat(unpacked); os.IsNotExist(err) {
-		if err := os.Mkdir(unpacked, os.ModePerm); err != nil {
+		if err := os.MkdirAll(unpacked, os.ModePerm); err != nil {
 			return err
 		}
 	}
+
 	for _, file := range reader.File {
 		fpath := filepath.Join(unpacked, file.Name)
 		if !strings.HasPrefix(fpath, filepath.Clean(unpacked)+string(os.PathSeparator)) {

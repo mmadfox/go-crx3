@@ -42,11 +42,13 @@ func TestExtension_Zip(t *testing.T) {
 	require.NoError(t, err)
 	defer os.RemoveAll(basePath)
 
+	// prepare testdata
 	src := "./testdata/bobbyMol.zip"
 	dst := filepath.Join(basePath, "bobbyMol.zip")
 	_, err = CopyFile(src, dst)
 	require.NoError(t, err)
-	require.NoError(t, UnzipTo(basePath, dst))
+	outputDir := filepath.Join(basePath, "bobbyMol")
+	require.NoError(t, UnzipTo(outputDir, src))
 	os.Remove(dst)
 
 	tests := []struct {
@@ -207,11 +209,13 @@ func TestExtension_PackTo(t *testing.T) {
 	require.NoError(t, err)
 	defer os.RemoveAll(basePath)
 
+	// prepare testdata
 	src := "./testdata/bobbyMol.zip"
 	dst := filepath.Join(basePath, "bobbyMol.zip")
 	_, err = CopyFile(src, dst)
 	require.NoError(t, err)
-	require.NoError(t, UnzipTo(basePath, dst))
+	outputDir := filepath.Join(basePath, "bobbyMol")
+	require.NoError(t, UnzipTo(outputDir, dst))
 	os.Remove(dst)
 
 	type args struct {
@@ -258,11 +262,13 @@ func TestExtension_Pack(t *testing.T) {
 	require.NoError(t, err)
 	defer os.RemoveAll(basePath)
 
+	// prepare testdata
 	src := "./testdata/bobbyMol.zip"
 	dst := filepath.Join(basePath, "bobbyMol.zip")
 	_, err = CopyFile(src, dst)
 	require.NoError(t, err)
-	require.NoError(t, UnzipTo(basePath, dst))
+	outputDir := filepath.Join(basePath, "bobbyMol")
+	require.NoError(t, UnzipTo(outputDir, dst))
 	os.Remove(dst)
 
 	tests := []struct {
