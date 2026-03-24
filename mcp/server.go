@@ -145,7 +145,7 @@ func MakeAllTools(opts *Options) []ToolInfo {
 	return tools
 }
 
-//go:embed instruction.md
+//go:embed instruction_short.md
 var Instruction string
 
 type Options struct {

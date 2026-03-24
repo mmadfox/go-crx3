@@ -7,6 +7,4 @@ Use this tool when the user needs to convert a binary extension file (e.g., .crx
 <example>
 - "Encode the packed extension into base64"
 - "Convert extension.zip to base64 string"
-- "I need a base64 representation of manifest.json"
-- "Encode the background.js file for embedding in HTML"
 </example>

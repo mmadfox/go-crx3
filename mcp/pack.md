@@ -8,5 +8,4 @@ Use this tool when the user wants to create a .crx file from a zip archive or un
 - "Pack this unpacked extension to a .crx file"
 - "Create a crx from ./my-extension/"
 - "Pack myextension.zip to ./release/my-extension.crx"
-- "I need to package the modified extension for deployment"
 </example>

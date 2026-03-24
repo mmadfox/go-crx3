@@ -7,6 +7,4 @@ Use this tool when the user wants to download a Chrome extension package (.crx f
 <example>
 - "Download the extension with ID 'aapbdbdomjkkjkaonfhkkikfgjllcleb'"
 - "Save the uBlock Origin extension to ./downloads/"
-- "Download the extension from this URL: https://chrome.google.com/webstore/detail/..."
-- "Get the .crx file for the extension I just searched for"
 </example>
