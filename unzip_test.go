@@ -32,7 +32,7 @@ func TestUnzipTo(t *testing.T) {
 			wantErr: true,
 		},
 		{
-			name: "should return error when basepath does not exists",
+			name: "should return error when basepath invalid",
 			args: args{
 				basepath: "/some/base/path",
 				filename: "./testdata/bobbyMol.zip",
@@ -40,13 +40,13 @@ func TestUnzipTo(t *testing.T) {
 			wantErr: true,
 		},
 		{
-			name: "should not return error when all params are valid",
+			name: "should return successfuly",
 			args: args{
-				basepath: basePath,
+				basepath: basePath + "/bobbyMol",
 				filename: "./testdata/bobbyMol.zip",
 			},
 			assert: func(args args) {
-				expected := filepath.Join(args.basepath, "bobbyMol")
+				expected := filepath.Join(args.basepath)
 				require.True(t, isDir(expected))
 			},
 		},
