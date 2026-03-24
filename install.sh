@@ -139,39 +139,39 @@ log_info "Found binary: ${BIN_PATH}"
 # =============================================================================
 
 # Prefer /usr/local/bin if writable, otherwise use ~/.local/bin
-# if [ -w "/usr/local/bin" ]; then
-#   INSTALL_DIR="/usr/local/bin"
-# else
-#   INSTALL_DIR="$HOME/.local/bin"
-#   mkdir -p "$INSTALL_DIR"
-#   log_warn "No write access to /usr/local/bin"
-#   log_warn "Installing to ${INSTALL_DIR}"
-#   log_warn "Add to PATH: export PATH=\"${INSTALL_DIR}:\$PATH\""
-# fi
+if [ -w "/usr/local/bin" ]; then
+  INSTALL_DIR="/usr/local/bin"
+else
+  INSTALL_DIR="$HOME/.local/bin"
+  mkdir -p "$INSTALL_DIR"
+  log_warn "No write access to /usr/local/bin"
+  log_warn "Installing to ${INSTALL_DIR}"
+  log_warn "Add to PATH: export PATH=\"${INSTALL_DIR}:\$PATH\""
+fi
 
 # =============================================================================
 # 10. Install the binary
 # =============================================================================
 
-# log_info "Installing to ${INSTALL_DIR}/crx3"
-# cp "${BIN_PATH}" "${INSTALL_DIR}/crx3"
-# chmod +x "${INSTALL_DIR}/crx3"
+log_info "Installing to ${INSTALL_DIR}/crx3"
+cp "${BIN_PATH}" "${INSTALL_DIR}/crx3"
+chmod +x "${INSTALL_DIR}/crx3"
 
 # =============================================================================
 # 11. Final verification and user feedback
 # =============================================================================
 
-# echo ""
-# if command -v crx3 >/dev/null 2>&1; then
-#   log_info "✅ crx3 installed successfully!"
-#   crx3 version
-# else
-#   log_warn "⚠️  crx3 installed to ${INSTALL_DIR}, but not in PATH"
-#   log_info "Run: export PATH=\"${INSTALL_DIR}:\$PATH\""
-# fi
+echo ""
+if command -v crx3 >/dev/null 2>&1; then
+  log_info "✅ crx3 installed successfully!"
+  crx3 version
+else
+  log_warn "⚠️  crx3 installed to ${INSTALL_DIR}, but not in PATH"
+  log_info "Run: export PATH=\"${INSTALL_DIR}:\$PATH\""
+fi
 
-# echo ""
-# echo "📚 Usage: crx3 --help"
+echo ""
+echo "📚 Usage: crx3 --help"
 
 # =============================================================================
 # Cleanup happens automatically via trap (no explicit call needed)
