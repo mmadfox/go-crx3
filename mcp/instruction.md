@@ -25,8 +25,6 @@ SESSION INITIALIZATION PROTOCOL — ALWAYS START WITH WORKSPACE
 |--------------------|------------------------------------------------------------------------|
 | Session Start      | Auto-call `crx3_workspace {}` → cache `absoluteRootPath`              |
 | During Session     | Use cached root for all path resolution; never re-call unless error   |
-| Path Validation    | All tool inputs: must start with `./` and resolve within cached root  |
-| User Display       | Format paths as: `{cached_root}/{relative_path}`                      |
 | Error Recovery     | If file not found: re-call `crx3_workspace` to verify root unchanged  |
 | Session End        | Clear cached workspace path (optional, depends on implementation)     |
 
@@ -35,6 +33,27 @@ SESSION INITIALIZATION PROTOCOL — ALWAYS START WITH WORKSPACE
    • User: "Unpack ./ext.crx"
    • LLM: Doesn't know workspace root → guesses or assumes current dir → tool error
    • Result: Retry loop, confused user, wasted tokens
+
+
+===============================================================================
+MANDATORY WORKSPACE CHECK BEFORE FILE OPERATIONS [NEW RULE]
+===============================================================================
+✅ BEFORE calling any of the following tools, you MUST ensure crx3_workspace has been called in the current session:
+• crx3_pack
+• crx3_unpack
+• crx3_getid
+• crx3_base64
+• crx3_zip
+• crx3_unzip
+✅ Implementation rule:
+Check if absoluteRootPath is cached in session memory
+If NOT cached → call crx3_workspace {} first → cache the result → proceed with target tool
+If cached → proceed directly with target tool (no redundant call needed)
+✅ This ensures:
+• All file operations use the correct workspace root
+• Path resolution errors are prevented
+• Session state remains consistent even if workspace config changes
+✅ Exception: crx3_search, crx3_download, crx3_scan, crx3_version do NOT require prior workspace call (but may still benefit from it for path construction)
 
 ===============================================================================
 WORKSPACE ISOLATION

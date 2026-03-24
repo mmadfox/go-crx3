@@ -12,6 +12,10 @@ import (
 // UnzipTo extracts the contents of a ZIP archive specified by 'filename' to the 'basepath' directory.
 // It opens the ZIP file, creates the necessary directory structure, and extracts all files.
 func UnzipTo(basepath string, filename string) error {
+	if err := os.MkdirAll(basepath, 0755); err != nil {
+		return fmt.Errorf("failed to output dir: %w", err)
+	}
+
 	if !isDir(basepath) {
 		return fmt.Errorf("%w: does not exists %s",
 			ErrPathNotFound, basepath)
@@ -28,10 +32,7 @@ func UnzipTo(basepath string, filename string) error {
 		return err
 	}
 
-	dirname := filepath.Join(basepath,
-		strings.TrimSuffix(filepath.Base(filename), zipExt))
-
-	return Unzip(file, stat.Size(), dirname)
+	return Unzip(file, stat.Size(), basepath)
 }
 
 // Unzip extracts all files and directories from the provided ZIP archive.
