@@ -17,17 +17,17 @@ import (
 	"github.com/spf13/cobra"
 )
 
-type mcpOpts struct {
-	Address          string
-	ShowTools        bool
-	Logfile          string
-	DisabledTools    []string
-	WorkDir          string
-	DisabledMarkdown bool
-}
-
 func newMCPCmd(version string) *cobra.Command {
-	var opts mcpOpts
+	opts := struct {
+		Address          string
+		ShowTools        bool
+		Logfile          string
+		DisabledTools    []string
+		WorkDir          string
+		DisabledMarkdown bool
+		IsSSE            bool
+	}{}
+
 	cmd := &cobra.Command{
 		Use:   "mcp [mcp-flags]",
 		Short: "Start the crx3 MCP server in headless mode",
@@ -85,14 +85,21 @@ $ crx3 mcp  # starts over stdio`,
 			ctx, cancel := context.WithCancel(cmd.Context())
 			defer cancel()
 
-			// TODO: http, sse
-			return mcp.ServeStdIO(ctx, allTools, mcp.Options{
+			srvOpts := mcp.Options{
 				Version:          version,
 				Logger:           logWriter,
 				WorkDir:          opts.WorkDir,
 				DisabledMarkdown: opts.DisabledMarkdown,
 				DisabledTools:    opts.DisabledTools,
-			})
+			}
+
+			isHTTP := len(opts.Address) > 0
+			switch {
+			case isHTTP:
+				return mcp.ServeHTTP(ctx, opts.Address, allTools, srvOpts, opts.IsSSE)
+			default:
+				return mcp.ServeStdIO(ctx, allTools, srvOpts)
+			}
 		},
 	}
 
@@ -101,6 +108,7 @@ $ crx3 mcp  # starts over stdio`,
 	cmd.Flags().BoolVarP(&opts.ShowTools, "tools.show", "s", false, "If set, print tools with instruction and exit")
 	cmd.Flags().StringSliceVarP(&opts.DisabledTools, "tools.disabled", "d", []string{}, "Comma-separated list of tool names to disable when running the MCP server")
 	cmd.Flags().BoolVarP(&opts.DisabledMarkdown, "tools.disabledMarkdownOutput", "m", false, "If set, disables human-readable text output (Markdown) in tool responses. Only structured data (JSON) will be returned. Intended for automated clients that consume structured content directly")
+	cmd.Flags().BoolVar(&opts.IsSSE, "sse", false, "If set, runs the server in SSE (Server-Sent Events) mode over HTTP. Requires --listen to specify the address. In this mode, the server communicates via HTTP using the SSE protocol for streaming JSON events, suitable for remote clients")
 	cmd.Flags().StringVarP(&opts.WorkDir, "workdir", "w", "", "The working directory in which the server will run. Defaults to the current directory")
 
 	cmd.SilenceUsage = true
