@@ -81,7 +81,7 @@ brew install mmadfox/tap/crx3
 
 ### Via install.sh (Linux/macOS)
 ```bash
-curl -sSfL https://raw.githubusercontent.com/mmadfox/go-crx3/master/install.sh | bash -s
+sudo curl -sSfL https://raw.githubusercontent.com/mmadfox/go-crx3/master/install.sh | bash -s
 ```
 
 ### Via Go
